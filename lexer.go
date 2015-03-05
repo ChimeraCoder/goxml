@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-    "log"
+	"log"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -68,39 +68,16 @@ func lex(name string, input string) (*lexer, chan item) {
 }
 
 func (l *lexer) run() {
-	for state := startState; state != nil; {
+	for state := lexText; state != nil; {
 		state = state(l)
 	}
 	close(l.items) // no more tokens will be delivered
 }
 
 func (l *lexer) emit(t itemType) {
-    i := item{t, l.input[l.start:l.pos]}
+	i := item{t, l.input[l.start:l.pos]}
 	l.items <- i
 	l.start = l.pos
-}
-
-func lexText(l *lexer) stateFn {
-	for {
-		// check if the string starts with {
-		if strings.HasPrefix(l.input[l.pos:], string(leftMeta)) {
-			if l.pos > l.start {
-				l.emit(itemLeftBrace)
-			}
-			// return the next state
-			return lexInsideAction
-		}
-		if l.next() == EOF {
-			break
-		}
-	}
-	// Correctly reached EOF
-	if l.pos > l.start {
-		l.emit(itemEOF)
-	}
-
-	l.emit(itemEOF) // useful to make EOF a token
-	return nil      // this will stop the run loop
 }
 
 // lexInsideAction means we are inside a new block
@@ -114,10 +91,10 @@ func lexInsideAction(l *lexer) stateFn {
 		switch r := l.next(); {
 		case r == EOF:
 			return l.errorf("unclosed action")
-        case r == rightMeta:
-            l.emit(itemRightBrace)
-            // TODO fix this
-            return startState
+		case r == rightMeta:
+			l.emit(itemRightBrace)
+			// TODO fix this
+			return lexText
 		case isSpace(r):
 			l.ignore()
 		case r == '"':
@@ -137,7 +114,7 @@ func lexIdentifier(l *lexer) stateFn {
 	const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVQXYZabcdefghijklmnopqrstuvwxyz0123456789"
 	l.acceptRun(alphanumeric)
 	l.emit(itemIdentifier)
-	return startState
+	return lexText
 }
 
 // next returns the next rune in the input
@@ -205,39 +182,39 @@ func lexNumber(l *lexer) stateFn {
 
 	l.emit(itemNumber)
 	// TODO scientific notation
-	return startState
+	return lexText
 }
 
 func lexRightMeta(l *lexer) stateFn {
-    if l.accept(string(rightMeta)) {
-        l.emit(itemRightBrace)
-    } else {
-        return l.errorf("expected } but received %s", l.peek())
-    }
+	if l.accept(string(rightMeta)) {
+		l.emit(itemRightBrace)
+	} else {
+		return l.errorf("expected } but received %s", l.peek())
+	}
 
-    switch r := l.next(); {
-    case r == EOF:
-        l.emit(itemEOF)
-        return nil
-    default:
-        return l.errorf("expected EOF but received %s", string(r))
-    }
+	switch r := l.next(); {
+	case r == EOF:
+		l.emit(itemEOF)
+		return nil
+	default:
+		return l.errorf("expected EOF but received %s", string(r))
+	}
 }
 
-func startState(l *lexer) stateFn {
+func lexText(l *lexer) stateFn {
 	// accept leading whitespace
 	for {
 		switch r := l.next(); {
 		case isSpace(r):
 			l.ignore()
 		case r == leftMeta:
-            l.emit(itemLeftBrace)
+			l.emit(itemLeftBrace)
 			return lexInsideAction
-        case r == EOF:
-            l.emit(itemEOF)
-            return nil
+		case r == EOF:
+			l.emit(itemEOF)
+			return nil
 		default:
-            return l.errorf("unexpected token: %s", string(r))
+			return l.errorf("unexpected token: %s", string(r))
 		}
 	}
 }
@@ -270,8 +247,8 @@ func isAlphaNumeric(r rune) bool {
 }
 
 func main() {
-    _, items := lex("testLex", "{}")
-    for item := range items {
-        log.Printf("Received %+v", item)
-    }
+	_, items := lex("testLex", "{}")
+	for item := range items {
+		log.Printf("Received %+v", item)
+	}
 }
