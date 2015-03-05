@@ -44,6 +44,14 @@ func (i item) String() string {
 	return fmt.Sprintf("%q", i.val)
 }
 
+// Err returns an error if the item is itemError
+func (i item) Err() error {
+	if i.typ == itemError {
+		return fmt.Errorf("%s", i)
+	}
+	return nil
+}
+
 // lexer holds the state of the scanner
 type lexer struct {
 	name  string    // for error reporting
@@ -249,6 +257,9 @@ func isAlphaNumeric(r rune) bool {
 func main() {
 	_, items := lex("testLex", "{}")
 	for item := range items {
+		if err := item.Err(); err != nil {
+			log.Fatalf("error: %s", err)
+		}
 		log.Printf("Received %+v", item)
 	}
 }
