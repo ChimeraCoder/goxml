@@ -24,6 +24,7 @@ const (
 	itemRightBrace
 	itemQuote
 	itemIdentifier
+	itemColon
 
 	itemDot
 	itemEOF
@@ -203,6 +204,9 @@ func lexText(l *lexer) stateFn {
 		case isAlphaNumeric(r):
 			l.backup()
 			return lexIdentifier
+		case r == ':':
+			l.emit(itemColon)
+			return lexText
 		default:
 			return l.errorf("unexpected token: %s", string(r))
 		}
@@ -265,7 +269,7 @@ func isAlphaNumeric(r rune) bool {
 }
 
 func main() {
-	_, items := lex("testLex", "{a}")
+	_, items := lex("testLex", "{\"a\"::5}")
 	for item := range items {
 		if err := item.Err(); err != nil {
 			log.Fatalf("error: %s", err)
