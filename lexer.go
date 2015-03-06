@@ -88,35 +88,6 @@ func (l *lexer) emit(t itemType) {
 	l.start = l.pos
 }
 
-// lexInsideAction means we are inside a new block
-// having just read {
-func lexInsideAction(l *lexer) stateFn {
-	// Ether a quoted string or a closing brace
-	// TODO or a non-quoted string
-	// spaces separate and are ignored
-
-	for {
-		switch r := l.next(); {
-		case r == EOF:
-			return l.errorf("unclosed action")
-		case r == rightMeta:
-			l.emit(itemRightBrace)
-			// TODO fix this
-			return lexText
-		case isSpace(r):
-			l.ignore()
-		case r == '"':
-			l.emit(itemQuote)
-		case r == '+' || r == '-' || '0' <= r && r <= '9':
-			l.backup()
-			return lexNumber
-		case isAlphaNumeric(r):
-			l.backup()
-			return lexIdentifier
-		}
-	}
-}
-
 // lexIdentifier means we are reading an identifier
 func lexIdentifier(l *lexer) stateFn {
 	const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVQXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -217,10 +188,21 @@ func lexText(l *lexer) stateFn {
 			l.ignore()
 		case r == leftMeta:
 			l.emit(itemLeftBrace)
-			return lexInsideAction
+			return lexText
+		case r == rightMeta:
+			l.emit(itemRightBrace)
+			return lexText
+		case r == '"':
+			return lexQuote
+		case r == '+' || r == '-' || '0' <= r && r <= '9':
+			l.backup()
+			return lexNumber
 		case r == EOF:
 			l.emit(itemEOF)
 			return nil
+		case isAlphaNumeric(r):
+			l.backup()
+			return lexIdentifier
 		default:
 			return l.errorf("unexpected token: %s", string(r))
 		}
@@ -243,6 +225,34 @@ func (l *lexer) nextItem() item {
 	panic("unreachable")
 }
 
+func lexQuote(l *lexer) stateFn {
+	// TODO use a 'reject' function to simplify this
+	// TODO account for unexpected EOF
+	for {
+		next := l.next()
+		for next != '\\' && next != '"' {
+			next = l.next()
+		}
+
+		// If the token we broke on
+		// is an escape character,
+		// accept the next one unconditionally
+		if next == '\\' {
+			l.next()
+			continue
+		}
+
+		// If the token we broke on
+		// is a quotation mark
+		// we are done
+		if next == '"' {
+			break
+		}
+	}
+	l.emit(itemQuote)
+	return lexText
+}
+
 func isSpace(r rune) bool {
 	return len(strings.TrimSpace(string(r))) == 0
 
@@ -255,7 +265,7 @@ func isAlphaNumeric(r rune) bool {
 }
 
 func main() {
-	_, items := lex("testLex", "{}")
+	_, items := lex("testLex", "{a}")
 	for item := range items {
 		if err := item.Err(); err != nil {
 			log.Fatalf("error: %s", err)
