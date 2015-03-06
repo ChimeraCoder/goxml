@@ -22,9 +22,11 @@ const (
 	itemLeftBrace
 	itemNumber
 	itemRightBrace
-	itemQuote
+	itemDoubleQuote
+	itemSingleQuote
 	itemIdentifier
 	itemColon
+	itemComma
 
 	itemDot
 	itemEOF
@@ -194,7 +196,9 @@ func lexText(l *lexer) stateFn {
 			l.emit(itemRightBrace)
 			return lexText
 		case r == '"':
-			return lexQuote
+			return lexDoubleQuote
+		case r == '\'':
+			return lexSingleQuote
 		case r == '+' || r == '-' || '0' <= r && r <= '9':
 			l.backup()
 			return lexNumber
@@ -206,6 +210,9 @@ func lexText(l *lexer) stateFn {
 			return lexIdentifier
 		case r == ':':
 			l.emit(itemColon)
+			return lexText
+		case r == ',':
+			l.emit(itemComma)
 			return lexText
 		default:
 			return l.errorf("unexpected token: %s", string(r))
@@ -229,7 +236,7 @@ func (l *lexer) nextItem() item {
 	panic("unreachable")
 }
 
-func lexQuote(l *lexer) stateFn {
+func lexDoubleQuote(l *lexer) stateFn {
 	// TODO use a 'reject' function to simplify this
 	// TODO account for unexpected EOF
 	for {
@@ -253,7 +260,35 @@ func lexQuote(l *lexer) stateFn {
 			break
 		}
 	}
-	l.emit(itemQuote)
+	l.emit(itemDoubleQuote)
+	return lexText
+}
+
+func lexSingleQuote(l *lexer) stateFn {
+	// TODO use a 'reject' function to simplify this
+	// TODO account for unexpected EOF
+	for {
+		next := l.next()
+		for next != '\\' && next != '\'' {
+			next = l.next()
+		}
+
+		// If the token we broke on
+		// is an escape character,
+		// accept the next one unconditionally
+		if next == '\\' {
+			l.next()
+			continue
+		}
+
+		// If the token we broke on
+		// is a quotation mark
+		// we are done
+		if next == '\'' {
+			break
+		}
+	}
+	l.emit(itemSingleQuote)
 	return lexText
 }
 
@@ -269,7 +304,7 @@ func isAlphaNumeric(r rune) bool {
 }
 
 func main() {
-	_, items := lex("testLex", "{\"a\"::5}")
+	_, items := lex("testLex", `{"a":5, b : 'foo' }`)
 	for item := range items {
 		if err := item.Err(); err != nil {
 			log.Fatalf("error: %s", err)
