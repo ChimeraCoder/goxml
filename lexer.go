@@ -241,7 +241,7 @@ func lexDoubleQuote(l *lexer) stateFn {
 	// TODO account for unexpected EOF
 	for {
 		next := l.next()
-		for next != '\\' && next != '"' {
+		for next != '\\' && next != '"' && next != EOF {
 			next = l.next()
 		}
 
@@ -259,6 +259,11 @@ func lexDoubleQuote(l *lexer) stateFn {
 		if next == '"' {
 			break
 		}
+
+		if next == EOF {
+			l.errorf("unexpected EOF inside quoted string")
+			break
+		}
 	}
 	l.emit(itemDoubleQuote)
 	return lexText
@@ -269,7 +274,7 @@ func lexSingleQuote(l *lexer) stateFn {
 	// TODO account for unexpected EOF
 	for {
 		next := l.next()
-		for next != '\\' && next != '\'' {
+		for next != '\\' && next != '\'' && next != EOF {
 			next = l.next()
 		}
 
@@ -286,6 +291,10 @@ func lexSingleQuote(l *lexer) stateFn {
 		// we are done
 		if next == '\'' {
 			break
+		}
+
+		if next == EOF {
+			l.errorf("unexpected EOF inside quoted string")
 		}
 	}
 	l.emit(itemSingleQuote)
