@@ -66,19 +66,22 @@ type lexer struct {
 
 type stateFn func(*lexer) stateFn
 
-func lex(name string, input string) (*lexer, chan item) {
+func lex(name string, input string, startState stateFn) (*lexer, chan item) {
 	l := &lexer{
 		name:  name,
 		input: input,
 		items: make(chan item, 2), // two items is sufficient
 	}
 
-	go l.run()
+	if startState == nil {
+		startState = lexText
+	}
+	go l.run(lexText)
 	return l, l.items
 }
 
-func (l *lexer) run() {
-	for state := lexText; state != nil; {
+func (l *lexer) run(startState stateFn) {
+	for state := startState; state != nil; {
 		state = state(l)
 	}
 	close(l.items) // no more tokens will be delivered
@@ -318,7 +321,7 @@ func isAlphaNumeric(r rune) bool {
 }
 
 func main() {
-	_, items := lex("testLex", `{"a":5, b : 'foo' }`)
+	_, items := lex("testLex", `{"a":5, b : 'foo' }`, nil)
 	for item := range items {
 		if err := item.Err(); err != nil {
 			log.Fatalf("error: %s", err)

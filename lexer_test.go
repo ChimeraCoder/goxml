@@ -5,7 +5,7 @@ import "testing"
 func Test_SimpleJSON(t *testing.T) {
 	var items []item
 	//_, itemsC := lex("testLex", `{"a":5, b : 'foo' }`)
-	_, itemsC := lex("testLex", `{"a":5}`)
+	_, itemsC := lex("testLex", `{"a":5}`, nil)
 	for item := range itemsC {
 		if err := item.Err(); err != nil {
 			t.Errorf("error: %s", err)
@@ -26,7 +26,7 @@ func Test_SimpleJSON(t *testing.T) {
 func Test_NestedJSON(t *testing.T) {
 	var items []item
 	//_, itemsC := lex("testLex", `{"a":5, b : 'foo' }`)
-	_, itemsC := lex("testLex", `{"a":5, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}`)
+	_, itemsC := lex("testLex", `{"a":5, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}`, nil)
 	for item := range itemsC {
 		if err := item.Err(); err != nil {
 			t.Errorf("error: %s", err)
