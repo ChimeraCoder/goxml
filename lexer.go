@@ -54,6 +54,11 @@ func (i item) Err() error {
 	return nil
 }
 
+type result struct {
+    item item
+    state stateFn
+}
+
 // lexer holds the state of the scanner
 type lexer struct {
 	name  string    // for error reporting
@@ -61,43 +66,44 @@ type lexer struct {
 	start int       // start position of item
 	pos   int       // current position in input
 	width int       // width of last rune read from input
-	items chan item // channel of scanned items
+    results chan result // channel of (scanned items, next state being returned)
 }
 
 type stateFn func(*lexer) stateFn
 
-func lex(name string, input string, startState stateFn) (*lexer, chan item) {
+func lex(name string, input string, startState stateFn) (*lexer, chan result) {
 	l := &lexer{
 		name:  name,
 		input: input,
-		items: make(chan item, 2), // two items is sufficient
+		results: make(chan result, 2), // two items is sufficient
 	}
 
-	if startState == nil {
-		startState = lexText
-	}
+    if startState == nil {
+        startState = lexText
+    }
 	go l.run(lexText)
-	return l, l.items
+	return l, l.results
 }
 
 func (l *lexer) run(startState stateFn) {
 	for state := startState; state != nil; {
 		state = state(l)
 	}
-	close(l.items) // no more tokens will be delivered
+	close(l.results) // no more tokens will be delivered
 }
 
-func (l *lexer) emit(t itemType) {
+func (l *lexer) emit(t itemType, next stateFn) {
 	i := item{t, l.input[l.start:l.pos]}
-	l.items <- i
+    l.results <- result{i, next}
 	l.start = l.pos
 }
+
 
 // lexIdentifier means we are reading an identifier
 func lexIdentifier(l *lexer) stateFn {
 	const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVQXYZabcdefghijklmnopqrstuvwxyz0123456789"
 	l.acceptRun(alphanumeric)
-	l.emit(itemIdentifier)
+	l.emit(itemIdentifier, lexText)
 	return lexText
 }
 
@@ -164,25 +170,9 @@ func lexNumber(l *lexer) stateFn {
 		l.acceptRun(digits)
 	}
 
-	l.emit(itemNumber)
+	l.emit(itemNumber, lexText)
 	// TODO scientific notation
 	return lexText
-}
-
-func lexRightMeta(l *lexer) stateFn {
-	if l.accept("}") {
-		l.emit(itemRightBrace)
-	} else {
-		return l.errorf("expected } but received %s", l.peek())
-	}
-
-	switch r := l.next(); {
-	case r == EOF:
-		l.emit(itemEOF)
-		return nil
-	default:
-		return l.errorf("expected EOF but received %s", string(r))
-	}
 }
 
 func lexText(l *lexer) stateFn {
@@ -192,16 +182,16 @@ func lexText(l *lexer) stateFn {
 		case isSpace(r):
 			l.ignore()
 		case r == '{':
-			l.emit(itemLeftBrace)
+			l.emit(itemLeftBrace, lexText)
 			return lexText
 		case r == '}':
-			l.emit(itemRightBrace)
+			l.emit(itemRightBrace, lexText)
 			return lexText
 		case r == '[':
-			l.emit(itemLeftSquareBracket)
+			l.emit(itemLeftSquareBracket, lexText)
 			return lexText
 		case r == ']':
-			l.emit(itemRightSquareBracket)
+			l.emit(itemRightSquareBracket, lexText)
 			return lexText
 		case r == '"':
 			return lexDoubleQuote
@@ -211,16 +201,16 @@ func lexText(l *lexer) stateFn {
 			l.backup()
 			return lexNumber
 		case r == EOF:
-			l.emit(itemEOF)
+			l.emit(itemEOF, nil)
 			return nil
 		case isAlphaNumeric(r):
 			l.backup()
 			return lexIdentifier
 		case r == ':':
-			l.emit(itemColon)
+			l.emit(itemColon, lexText)
 			return lexText
 		case r == ',':
-			l.emit(itemComma)
+			l.emit(itemComma, lexText)
 			return lexText
 		default:
 			return l.errorf("unexpected token: %s", string(r))
@@ -232,17 +222,14 @@ func lexText(l *lexer) stateFn {
 // by passing back a nil pointer that will be the next state
 // thereby terminating l.run
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
-	l.items <- item{
+	l.results <- result { item{
 		itemError,
 		fmt.Sprintf(format, args...),
-	}
+	}, nil}
+
 	return nil
 }
 
-func (l *lexer) nextItem() item {
-	return <-l.items
-	panic("unreachable")
-}
 
 func lexDoubleQuote(l *lexer) stateFn {
 	// TODO use a 'reject' function to simplify this
@@ -273,7 +260,7 @@ func lexDoubleQuote(l *lexer) stateFn {
 			break
 		}
 	}
-	l.emit(itemDoubleQuote)
+	l.emit(itemDoubleQuote, lexText)
 	return lexText
 }
 
@@ -305,7 +292,7 @@ func lexSingleQuote(l *lexer) stateFn {
 			l.errorf("unexpected EOF inside quoted string")
 		}
 	}
-	l.emit(itemSingleQuote)
+	l.emit(itemSingleQuote, lexText)
 	return lexText
 }
 
@@ -321,8 +308,9 @@ func isAlphaNumeric(r rune) bool {
 }
 
 func main() {
-	_, items := lex("testLex", `{"a":5, b : 'foo' }`, nil)
-	for item := range items {
+	_, results := lex("testLex", `{"a":5, b : 'foo' }`, nil)
+	for result := range results {
+        item := result.item
 		if err := item.Err(); err != nil {
 			log.Fatalf("error: %s", err)
 		}

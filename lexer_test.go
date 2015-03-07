@@ -5,12 +5,12 @@ import "testing"
 func Test_SimpleJSON(t *testing.T) {
 	var items []item
 	//_, itemsC := lex("testLex", `{"a":5, b : 'foo' }`)
-	_, itemsC := lex("testLex", `{"a":5}`, nil)
-	for item := range itemsC {
-		if err := item.Err(); err != nil {
+	_, results  := lex("testLex", `{"a":5}`, nil)
+	for result := range results {
+		if err := result.item.Err(); err != nil {
 			t.Errorf("error: %s", err)
 		}
-		items = append(items, item)
+		items = append(items, result.item)
 	}
 	expected := []item{
 		item{itemLeftBrace, "{"},
@@ -26,12 +26,12 @@ func Test_SimpleJSON(t *testing.T) {
 func Test_NestedJSON(t *testing.T) {
 	var items []item
 	//_, itemsC := lex("testLex", `{"a":5, b : 'foo' }`)
-	_, itemsC := lex("testLex", `{"a":5, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}`, nil)
-	for item := range itemsC {
-		if err := item.Err(); err != nil {
+	_, results := lex("testLex", `{"a":5, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}`, nil)
+	for result := range results {
+		if err := result.item.Err(); err != nil {
 			t.Errorf("error: %s", err)
 		}
-		items = append(items, item)
+		items = append(items, result.item)
 	}
 	expected := []item{
 		item{itemLeftBrace, "{"},
