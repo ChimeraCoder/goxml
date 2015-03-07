@@ -20,8 +20,10 @@ const (
 	itemError itemType = iota //error occurred
 
 	itemLeftBrace
+	itemLeftSquareBracket
 	itemNumber
 	itemRightBrace
+	itemRightSquareBracket
 	itemDoubleQuote
 	itemSingleQuote
 	itemIdentifier
@@ -31,9 +33,6 @@ const (
 	itemDot
 	itemEOF
 )
-
-const leftMeta = '{'
-const rightMeta = '}'
 
 const EOF = 0
 
@@ -168,7 +167,7 @@ func lexNumber(l *lexer) stateFn {
 }
 
 func lexRightMeta(l *lexer) stateFn {
-	if l.accept(string(rightMeta)) {
+	if l.accept("}") {
 		l.emit(itemRightBrace)
 	} else {
 		return l.errorf("expected } but received %s", l.peek())
@@ -189,11 +188,17 @@ func lexText(l *lexer) stateFn {
 		switch r := l.next(); {
 		case isSpace(r):
 			l.ignore()
-		case r == leftMeta:
+		case r == '{':
 			l.emit(itemLeftBrace)
 			return lexText
-		case r == rightMeta:
+		case r == '}':
 			l.emit(itemRightBrace)
+			return lexText
+		case r == '[':
+			l.emit(itemLeftSquareBracket)
+			return lexText
+		case r == ']':
+			l.emit(itemRightSquareBracket)
 			return lexText
 		case r == '"':
 			return lexDoubleQuote

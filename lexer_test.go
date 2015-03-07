@@ -1,16 +1,12 @@
 package main
 
-import (
-	"log"
-	"testing"
-)
+import "testing"
 
 func Test_SimpleJSON(t *testing.T) {
 	var items []item
 	//_, itemsC := lex("testLex", `{"a":5, b : 'foo' }`)
 	_, itemsC := lex("testLex", `{"a":5}`)
 	for item := range itemsC {
-		log.Print(item)
 		if err := item.Err(); err != nil {
 			t.Errorf("error: %s", err)
 		}
@@ -21,6 +17,46 @@ func Test_SimpleJSON(t *testing.T) {
 		item{itemDoubleQuote, `"a"`},
 		item{itemColon, ":"},
 		item{itemNumber, "5"},
+		item{itemRightBrace, "}"},
+		item{itemEOF, string("")},
+	}
+	checkEqual(t, items, expected)
+}
+
+func Test_NestedJSON(t *testing.T) {
+	var items []item
+	//_, itemsC := lex("testLex", `{"a":5, b : 'foo' }`)
+	_, itemsC := lex("testLex", `{"a":5, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}`)
+	for item := range itemsC {
+		if err := item.Err(); err != nil {
+			t.Errorf("error: %s", err)
+		}
+		items = append(items, item)
+	}
+	expected := []item{
+		item{itemLeftBrace, "{"},
+		item{itemDoubleQuote, `"a"`},
+		item{itemColon, ":"},
+		item{itemNumber, "5"},
+		item{itemComma, ","},
+		item{itemIdentifier, "b"},
+		item{itemColon, ":"},
+		item{itemSingleQuote, `'bar'`},
+		item{itemComma, ","},
+		item{itemIdentifier, "cat"},
+		item{itemColon, ":"},
+		item{itemLeftBrace, "{"},
+		item{itemIdentifier, "dog"},
+		item{itemColon, ":"},
+		item{itemIdentifier, "true"},
+		item{itemComma, ","},
+		item{itemIdentifier, "elephant"},
+		item{itemColon, ":"},
+		item{itemLeftSquareBracket, "["},
+		item{itemSingleQuote, `'hathi'`},
+		item{itemComma, ","},
+		item{itemNumber, "3"},
+		item{itemRightSquareBracket, "]"},
 		item{itemRightBrace, "}"},
 		item{itemEOF, string("")},
 	}
