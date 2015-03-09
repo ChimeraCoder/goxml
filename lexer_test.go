@@ -1,10 +1,9 @@
 package main
 
 import "testing"
-import "log"
 
 const SimpleJSON = `{"a":5}`
-const NestedJSON = `{"a":5, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}`
+const NestedJSON = `{"a":5, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}}`
 
 func Test_SimpleJSON(t *testing.T) {
 	var items []item

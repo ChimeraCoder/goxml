@@ -90,12 +90,18 @@ func parse(input string) error {
 	// Set up the lexer, which will run concurrently
 	l, results = lex("testLex", input, nil)
 
-	for !done {
+	for {
 		jl := &yyLex{}
 		yyParse(jl)
 		if jl.err != nil {
 			return jl.err
 		}
+		if done {
+			// reset for testing package
+			done = false
+			break
+		}
+
 	}
 	return nil
 }
@@ -103,7 +109,7 @@ func parse(input string) error {
 func main() {
 	bts, err := ioutil.ReadAll((os.NewFile(0, "stdin")))
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("%s", err)
 	}
 	parse(string(bts))
 }
@@ -125,22 +131,22 @@ const yyLast = 45
 
 var yyAct = []int{
 
-	18, 7, 19, 6, 9, 28, 25, 12, 4, 5,
-	23, 26, 16, 15, 14, 22, 4, 5, 23, 27,
-	24, 15, 14, 22, 15, 14, 13, 30, 12, 31,
-	29, 8, 17, 15, 14, 13, 4, 5, 21, 3,
+	17, 19, 9, 18, 7, 6, 12, 4, 5, 23,
+	28, 16, 15, 14, 22, 4, 5, 23, 25, 26,
+	15, 14, 22, 15, 14, 13, 27, 12, 29, 31,
+	30, 8, 24, 15, 14, 13, 4, 5, 21, 3,
 	20, 2, 11, 10, 1,
 }
 var yyPact = []int{
 
-	31, -1000, -13, -15, 23, 3, -1000, -1000, -1000, 12,
-	-8, -2, -1000, -1000, -1000, -1000, -1000, 10, -9, -1000,
-	-1000, -1000, -1000, -1000, -1000, 14, 11, -1000, 11, -1000,
+	31, -1000, -11, -12, 23, 2, -1000, -1000, -1000, 24,
+	4, 6, -1000, -1000, -1000, -1000, -1000, 17, -4, -1000,
+	-1000, -1000, -1000, -1000, -1000, 13, 10, -1000, 10, -1000,
 	-1000, -1000,
 }
 var yyPgo = []int{
 
-	0, 44, 40, 38, 4, 43, 42, 0, 2, 32,
+	0, 44, 40, 38, 2, 43, 42, 3, 1, 0,
 }
 var yyR1 = []int{
 
@@ -159,7 +165,7 @@ var yyChk = []int{
 	-1000, -1, -2, -3, 5, 6, 16, 16, 8, -4,
 	-5, -6, -8, 12, 11, 10, 9, -9, -7, -8,
 	-2, -3, 12, 7, 8, 14, 13, 9, 14, -4,
-	-7, -7,
+	-7, -9,
 }
 var yyDef = []int{
 
@@ -406,6 +412,21 @@ yydefault:
 	// dummy call; replaced with literal code
 	switch yynt {
 
+	case 13:
+		//line parser.y:70
+		{
+			fmt.Printf("Received %+v\n", yyS[yypt-0])
+		}
+	case 20:
+		//line parser.y:81
+		{
+			fmt.Printf("Single value: %+v\n", yyS[yypt-0])
+		}
+	case 21:
+		//line parser.y:82
+		{
+			fmt.Printf("Double value %+v %+v %+v\n", yyS[yypt-2], yyS[yypt-1], yyS[yypt-0])
+		}
 	}
 	goto yystack /* stack new state and value */
 }

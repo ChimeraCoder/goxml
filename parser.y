@@ -79,7 +79,7 @@ ARRAY   : itemLeftSquareBracket itemRightSquareBracket
         ;
 
 ELEMENTS : VALUE
-         | VALUE itemComma VALUE
+         | VALUE itemComma ELEMENTS
          ;
 
 %%
