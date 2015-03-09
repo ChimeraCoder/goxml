@@ -9,11 +9,13 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type itemType int
 
-//line parser.y:19
+//line parser.y:21
 type yySymType struct {
 	yys int
 	val interface{}
@@ -56,7 +58,9 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parser.y:87
+//line parser.y:89
+
+var parsedAST interface{}
 
 type yyLex struct {
 	err error
@@ -87,7 +91,8 @@ var results chan result
 
 var done bool
 
-func parse(input string) error {
+func parse(input string) (interface{}, error) {
+	parsedAST = nil
 
 	// Set up the lexer, which will run concurrently
 	l, results = lex("testLex", input, nil)
@@ -96,7 +101,7 @@ func parse(input string) error {
 		jl := &yyLex{}
 		yyParse(jl)
 		if jl.err != nil {
-			return jl.err
+			return parsedAST, jl.err
 		}
 		if done {
 			// reset for testing package
@@ -105,7 +110,9 @@ func parse(input string) error {
 		}
 
 	}
-	return nil
+	ast := parsedAST
+	parsedAST = nil
+	return ast, nil
 }
 
 func main() {
@@ -415,29 +422,39 @@ yydefault:
 	switch yynt {
 
 	case 2:
-		//line parser.y:49
+		//line parser.y:51
 		{
 			fmt.Printf("Parsed: %+v\n", yyVAL.val)
+			parsedAST = yyVAL.val
 		}
 	case 5:
-		//line parser.y:54
+		//line parser.y:56
 		{
-			yyVAL.val = map[string]interface{}{yyS[yypt-1].key: yyS[yypt-1].val}
+			yyVAL.val = map[string]interface{}{strings.Trim(yyS[yypt-1].key, "\""): yyS[yypt-1].val}
 		}
 	case 6:
-		//line parser.y:57
+		//line parser.y:59
 		{
 			log.Printf("d %+v", yyVAL)
 			yyVAL.key = yyS[yypt-0].key
 			yyVAL.val = yyS[yypt-0].val
 		}
 	case 8:
-		//line parser.y:61
+		//line parser.y:63
 		{
 			yyVAL.val = fmt.Sprintf("%s : %v", yyS[yypt-2].val, yyS[yypt-0].val)
 			yyVAL.key = yyS[yypt-2].val.(string)
 			yyVAL.val = yyS[yypt-0].val
 			log.Println(yyVAL.val)
+		}
+	case 17:
+		//line parser.y:78
+		{
+			n, err := strconv.Atoi(yyS[yypt-0].val.(string))
+			if err != nil {
+				yylex.Error(err.Error())
+			}
+			yyVAL.val = n
 		}
 	}
 	goto yystack /* stack new state and value */

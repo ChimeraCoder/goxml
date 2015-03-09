@@ -6,6 +6,8 @@ import (
     "io/ioutil"
     "log"
     "os"
+    "strconv"
+    "strings"
 )
 
 type itemType int
@@ -46,12 +48,12 @@ type itemType int
 %%
 
 json    : /* empty */
-        | OBJECT itemEOF {fmt.Printf("Parsed: %+v\n", $$.val)}
+        | OBJECT itemEOF {fmt.Printf("Parsed: %+v\n", $$.val); parsedAST = $$.val}
         | ARRAY itemEOF
         ;
 
 OBJECT  : itemLeftBrace itemRightBrace /*{ $$.val = map[string]interface{}{}}*/
-        | itemLeftBrace PAIRS itemRightBrace { $$.val = map[string]interface{}{$2.key : $2.val}}
+        | itemLeftBrace PAIRS itemRightBrace { $$.val = map[string]interface{}{strings.Trim($2.key, "\"") : $2.val}}
         ;
 
 PAIRS   : PAIR  {log.Printf("d %+v", $$); $$.key = $1.key; $$.val = $1.val}
@@ -73,7 +75,7 @@ VALUE   : STRING
         | OBJECT
         | ARRAY
         | itemIdentifier  /* TODO specify keywords true/false/etc. */
-        | itemNumber
+        | itemNumber  { n, err := strconv.Atoi($1.val.(string)); if err != nil { yylex.Error(err.Error()) }; $$.val = n}
         ;
 
 ARRAY   : itemLeftSquareBracket itemRightSquareBracket
@@ -86,6 +88,7 @@ ELEMENTS : VALUE
 
 %%
 
+var parsedAST interface{}
 
 type yyLex struct {
     err error
@@ -118,8 +121,8 @@ var results chan result
 
 var done bool
 
-func parse(input string) error {
-
+func parse(input string) (interface{}, error) {
+    parsedAST = nil
 
     // Set up the lexer, which will run concurrently
     l, results = lex("testLex", input, nil)
@@ -128,7 +131,7 @@ func parse(input string) error {
         jl := &yyLex{}
         yyParse(jl)
         if jl.err != nil{
-            return jl.err
+            return parsedAST, jl.err
         }
         if done {
             // reset for testing package
@@ -137,7 +140,9 @@ func parse(input string) error {
         }
 
     }
-    return nil
+    ast := parsedAST
+    parsedAST = nil
+    return ast, nil
 }
 
 
