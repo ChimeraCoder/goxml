@@ -43,10 +43,42 @@ type itemType int
 %%
 
 json    : /* empty */
-        | itemLeftBrace itemRightBrace
-        | json itemEOF
+        | OBJECT itemEOF
+        | ARRAY itemEOF
         ;
 
+OBJECT  : itemLeftBrace itemRightBrace
+        | itemLeftBrace PAIRS itemRightBrace
+        ;
+
+PAIRS   : PAIR
+        | PAIR itemComma PAIRS
+        ;
+
+PAIR    : KEY itemColon VALUE
+        ;
+
+KEY     : STRING
+        | itemIdentifier
+        ;
+
+STRING  : itemSingleQuote
+        | itemDoubleQuote
+        ;
+
+VALUE   : STRING
+        | OBJECT
+        | ARRAY
+        | itemIdentifier  /* TODO specify keywords true/false/etc. */
+        ;
+
+ARRAY   : itemLeftSquareBracket itemRightSquareBracket
+        | itemLeftSquareBracket ELEMENTS itemRightSquareBracket
+        ;
+
+ELEMENTS : VALUE
+         | VALUE itemComma VALUE
+         ;
 
 %%
 
@@ -65,6 +97,7 @@ func (jl *yyLex) Lex(lval *yySymType) int {
 
     lval.val = item.val
     typ := int(item.typ)
+    log.Printf("Lexed\t%s\t%d", item.val, typ)
     return typ
 }
 

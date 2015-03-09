@@ -53,7 +53,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parser.y:51
+//line parser.y:83
 
 type yyLex struct {
 }
@@ -68,6 +68,7 @@ func (jl *yyLex) Lex(lval *yySymType) int {
 
 	lval.val = item.val
 	typ := int(item.typ)
+	log.Printf("Lexed\t%s\t%d", item.val, typ)
 	return typ
 }
 
@@ -102,41 +103,58 @@ var yyExca = []int{
 	-2, 0,
 }
 
-const yyNprod = 4
+const yyNprod = 21
 const yyPrivate = 57344
 
 var yyTokenNames []string
 var yyStates []string
 
-const yyLast = 4
+const yyLast = 43
 
 var yyAct = []int{
 
-	3, 4, 2, 1,
+	18, 7, 19, 6, 9, 4, 5, 12, 27, 16,
+	15, 14, 22, 4, 5, 15, 14, 13, 15, 14,
+	22, 8, 25, 15, 14, 13, 29, 12, 30, 28,
+	24, 26, 23, 4, 5, 21, 3, 20, 2, 17,
+	11, 10, 1,
 }
 var yyPact = []int{
 
-	-3, -16, -7, -1000, -1000,
+	28, -1000, -13, -15, 13, 0, -1000, -1000, -1000, 24,
+	16, 9, -1000, -1000, -1000, -1000, -1000, 22, -6, -1000,
+	-1000, -1000, -1000, -1000, 5, 8, -1000, 8, -1000, -1000,
+	-1000,
 }
 var yyPgo = []int{
 
-	0, 3,
+	0, 42, 37, 35, 4, 41, 40, 0, 2, 39,
 }
 var yyR1 = []int{
 
-	0, 1, 1, 1,
+	0, 1, 1, 1, 2, 2, 4, 4, 5, 6,
+	6, 8, 8, 7, 7, 7, 7, 3, 3, 9,
+	9,
 }
 var yyR2 = []int{
 
-	0, 0, 2, 2,
+	0, 0, 2, 2, 2, 3, 1, 3, 3, 1,
+	1, 1, 1, 1, 1, 1, 1, 2, 3, 1,
+	3,
 }
 var yyChk = []int{
 
-	-1000, -1, 5, 16, 8,
+	-1000, -1, -2, -3, 5, 6, 16, 16, 8, -4,
+	-5, -6, -8, 12, 11, 10, 9, -9, -7, -8,
+	-2, -3, 12, 8, 14, 13, 9, 14, -4, -7,
+	-7,
 }
 var yyDef = []int{
 
-	1, -2, 0, 3, 2,
+	1, -2, 0, 0, 0, 0, 2, 3, 4, 0,
+	6, 0, 9, 10, 11, 12, 17, 0, 19, 13,
+	14, 15, 16, 5, 0, 0, 18, 0, 7, 8,
+	20,
 }
 var yyTok1 = []int{
 
