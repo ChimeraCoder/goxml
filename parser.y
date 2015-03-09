@@ -122,12 +122,18 @@ func parse(input string) error {
     // Set up the lexer, which will run concurrently
     l, results = lex("testLex", input, nil)
 
-    for !done {
+    for {
         jl := &yyLex{}
         yyParse(jl)
         if jl.err != nil{
             return jl.err
         }
+        if done {
+            // reset for testing package
+            done = false
+            break
+        }
+
     }
     return nil
 }
@@ -136,7 +142,7 @@ func parse(input string) error {
 func main(){
     bts, err := ioutil.ReadAll((os.NewFile(0, "stdin")))
     if err != nil{
-        log.Fatal(err)
+        log.Printf("%s", err)
     }
     parse(string(bts))
 }
