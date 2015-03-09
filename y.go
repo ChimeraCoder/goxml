@@ -17,6 +17,8 @@ type itemType int
 type yySymType struct {
 	yys int
 	val interface{}
+
+	key string
 }
 
 const itemError = 57346
@@ -54,7 +56,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parser.y:85
+//line parser.y:87
 
 type yyLex struct {
 	err error
@@ -412,20 +414,30 @@ yydefault:
 	// dummy call; replaced with literal code
 	switch yynt {
 
-	case 13:
-		//line parser.y:70
+	case 2:
+		//line parser.y:49
 		{
-			fmt.Printf("Received %+v\n", yyS[yypt-0])
+			fmt.Printf("Parsed: %+v\n", yyVAL.val)
 		}
-	case 20:
-		//line parser.y:81
+	case 5:
+		//line parser.y:54
 		{
-			fmt.Printf("Single value: %+v\n", yyS[yypt-0])
+			yyVAL.val = map[string]interface{}{yyS[yypt-1].key: yyS[yypt-1].val}
 		}
-	case 21:
-		//line parser.y:82
+	case 6:
+		//line parser.y:57
 		{
-			fmt.Printf("Double value %+v %+v %+v\n", yyS[yypt-2], yyS[yypt-1], yyS[yypt-0])
+			log.Printf("d %+v", yyVAL)
+			yyVAL.key = yyS[yypt-0].key
+			yyVAL.val = yyS[yypt-0].val
+		}
+	case 8:
+		//line parser.y:61
+		{
+			yyVAL.val = fmt.Sprintf("%s : %v", yyS[yypt-2].val, yyS[yypt-0].val)
+			yyVAL.key = yyS[yypt-2].val.(string)
+			yyVAL.val = yyS[yypt-0].val
+			log.Println(yyVAL.val)
 		}
 	}
 	goto yystack /* stack new state and value */

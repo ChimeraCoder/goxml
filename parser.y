@@ -18,6 +18,8 @@ type itemType int
 
 %union{
     val interface{}
+
+    key string
 }
 
 
@@ -44,22 +46,22 @@ type itemType int
 %%
 
 json    : /* empty */
-        | OBJECT itemEOF
+        | OBJECT itemEOF {fmt.Printf("Parsed: %+v\n", $$.val)}
         | ARRAY itemEOF
         ;
 
-OBJECT  : itemLeftBrace itemRightBrace
-        | itemLeftBrace PAIRS itemRightBrace
+OBJECT  : itemLeftBrace itemRightBrace /*{ $$.val = map[string]interface{}{}}*/
+        | itemLeftBrace PAIRS itemRightBrace { $$.val = map[string]interface{}{$2.key : $2.val}}
         ;
 
-PAIRS   : PAIR
+PAIRS   : PAIR  {log.Printf("d %+v", $$); $$.key = $1.key; $$.val = $1.val}
         | PAIR itemComma PAIRS
         ;
 
-PAIR    : KEY itemColon VALUE
+PAIR    : KEY itemColon VALUE {$$.val = fmt.Sprintf("%s : %v", $1.val, $3.val); $$.key = $1.val.(string); $$.val = $3.val; log.Println($$.val)}
         ;
 
-KEY     : STRING
+KEY     : STRING 
         | itemIdentifier
         ;
 
