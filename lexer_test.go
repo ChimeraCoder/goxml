@@ -1,14 +1,15 @@
 package main
 
 import "testing"
-
+import "log"
 
 const SimpleJSON = `{"a":5}`
+const NestedJSON = `{"a":5, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}`
 
 func Test_SimpleJSON(t *testing.T) {
 	var items []item
 	//_, itemsC := lex("testLex", `{"a":5, b : 'foo' }`)
-	_, results  := lex("testLex", SimpleJSON, nil)
+	_, results := lex("testLex", SimpleJSON, nil)
 	for result := range results {
 		if err := result.item.Err(); err != nil {
 			t.Errorf("error: %s", err)
@@ -28,7 +29,6 @@ func Test_SimpleJSON(t *testing.T) {
 
 func Test_NestedJSON(t *testing.T) {
 	var items []item
-	//_, itemsC := lex("testLex", `{"a":5, b : 'foo' }`)
 	_, results := lex("testLex", `{"a":5, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}`, nil)
 	for result := range results {
 		if err := result.item.Err(); err != nil {
