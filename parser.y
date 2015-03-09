@@ -48,7 +48,7 @@ type itemType int
 %%
 
 json    : /* empty */
-        | OBJECT itemEOF {fmt.Printf("Parsed: %+v\n", $$.val); parsedAST = $$.val}
+        | OBJECT itemEOF {parsedAST = $$.val}
         | ARRAY itemEOF
         ;
 
@@ -56,11 +56,11 @@ OBJECT  : itemLeftBrace itemRightBrace /*{ $$.val = map[string]interface{}{}}*/
         | itemLeftBrace PAIRS itemRightBrace { $$.val = map[string]interface{}{$2.key : $2.val}}
         ;
 
-PAIRS   : PAIR  {log.Printf("d %+v", $$); $$.key = $1.key; $$.val = $1.val}
+PAIRS   : PAIR  {$$.key = $1.key; $$.val = $1.val}
         | PAIR itemComma PAIRS
         ;
 
-PAIR    : KEY itemColon VALUE {$$.val = fmt.Sprintf("%s : %v", $1.val, $3.val); $$.key = $1.val.(string); $$.val = $3.val; log.Println($$.val)}
+PAIR    : KEY itemColon VALUE {$$.val = fmt.Sprintf("%s : %v", $1.val, $3.val); $$.key = $1.val.(string); $$.val = $3.val; }
         ;
 
 KEY     : STRING 
@@ -79,11 +79,11 @@ VALUE   : STRING
         ;
 
 ARRAY   : itemLeftSquareBracket itemRightSquareBracket
-        | itemLeftSquareBracket ELEMENTS itemRightSquareBracket
+        | itemLeftSquareBracket ELEMENTS itemRightSquareBracket { $$.val = $2.val.([]interface{}) }
         ;
 
-ELEMENTS : VALUE
-         | VALUE itemComma ELEMENTS
+ELEMENTS : VALUE {$$.val = []interface{}{$1.val}}
+         | VALUE itemComma ELEMENTS {$$.val = append($3.val.([]interface{}), $1.val) }
          ;
 
 %%
@@ -105,7 +105,7 @@ func (jl *yyLex) Lex(lval *yySymType) int {
 
     lval.val = item.val
     typ := int(item.typ)
-    log.Printf("Lexed\t%s\t%d", item.val, typ)
+    //log.Printf("Lexed\t%s\t%d", item.val, typ)
     return typ
 }
 

@@ -59,6 +59,7 @@ const yyErrCode = 2
 const yyMaxDepth = 200
 
 //line parser.y:89
+
 var parsedAST interface{}
 
 type yyLex struct {
@@ -75,7 +76,7 @@ func (jl *yyLex) Lex(lval *yySymType) int {
 
 	lval.val = item.val
 	typ := int(item.typ)
-	log.Printf("Lexed\t%s\t%d", item.val, typ)
+	//log.Printf("Lexed\t%s\t%d", item.val, typ)
 	return typ
 }
 
@@ -423,7 +424,6 @@ yydefault:
 	case 2:
 		//line parser.y:51
 		{
-			fmt.Printf("Parsed: %+v\n", yyVAL.val)
 			parsedAST = yyVAL.val
 		}
 	case 5:
@@ -434,7 +434,6 @@ yydefault:
 	case 6:
 		//line parser.y:59
 		{
-			log.Printf("d %+v", yyVAL)
 			yyVAL.key = yyS[yypt-0].key
 			yyVAL.val = yyS[yypt-0].val
 		}
@@ -444,7 +443,6 @@ yydefault:
 			yyVAL.val = fmt.Sprintf("%s : %v", yyS[yypt-2].val, yyS[yypt-0].val)
 			yyVAL.key = yyS[yypt-2].val.(string)
 			yyVAL.val = yyS[yypt-0].val
-			log.Println(yyVAL.val)
 		}
 	case 11:
 		//line parser.y:70
@@ -464,6 +462,21 @@ yydefault:
 				yylex.Error(err.Error())
 			}
 			yyVAL.val = n
+		}
+	case 19:
+		//line parser.y:82
+		{
+			yyVAL.val = yyS[yypt-1].val.([]interface{})
+		}
+	case 20:
+		//line parser.y:85
+		{
+			yyVAL.val = []interface{}{yyS[yypt-0].val}
+		}
+	case 21:
+		//line parser.y:86
+		{
+			yyVAL.val = append(yyS[yypt-0].val.([]interface{}), yyS[yypt-2].val)
 		}
 	}
 	goto yystack /* stack new state and value */
