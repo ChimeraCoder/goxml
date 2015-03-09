@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -14,25 +13,6 @@ type item struct {
 	val string   // Value, such as "23.2".
 }
 
-type itemType int
-
-const (
-	itemError itemType = iota //error occurred
-
-	itemLeftBrace
-	itemLeftSquareBracket
-	itemNumber
-	itemRightBrace
-	itemRightSquareBracket
-	itemDoubleQuote
-	itemSingleQuote
-	itemIdentifier
-	itemColon
-	itemComma
-
-	itemDot
-	itemEOF
-)
 
 const EOF = 0
 
@@ -307,6 +287,7 @@ func isAlphaNumeric(r rune) bool {
 	return reg.Match([]byte(s))
 }
 
+/*
 func main() {
 	_, results := lex("testLex", `{"a":5, b : 'foo' }`, nil)
 	for result := range results {
@@ -317,3 +298,4 @@ func main() {
 		log.Printf("Received %+v", item)
 	}
 }
+*/
