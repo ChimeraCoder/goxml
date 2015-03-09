@@ -2,6 +2,7 @@
 package main
 
 import (
+    "fmt"
     "io/ioutil"
     "log"
     "os"
@@ -70,6 +71,7 @@ VALUE   : STRING
         | OBJECT
         | ARRAY
         | itemIdentifier  /* TODO specify keywords true/false/etc. */
+        | itemNumber
         ;
 
 ARRAY   : itemLeftSquareBracket itemRightSquareBracket
@@ -84,6 +86,7 @@ ELEMENTS : VALUE
 
 
 type yyLex struct {
+    err error
 }
 
 func (jl *yyLex) Lex(lval *yySymType) int {
@@ -102,6 +105,7 @@ func (jl *yyLex) Lex(lval *yySymType) int {
 }
 
 func (jl *yyLex) Error(e string) {
+    jl.err = fmt.Errorf("%s", e)
     log.Printf("Parsing error: %s", e)
 }
 
@@ -112,17 +116,27 @@ var results chan result
 
 var done bool
 
-func main() {
+func parse(input string) error {
 
 
     // Set up the lexer, which will run concurrently
+    l, results = lex("testLex", input, nil)
+
+    for !done {
+        jl := &yyLex{}
+        yyParse(jl)
+        if jl.err != nil{
+            return jl.err
+        }
+    }
+    return nil
+}
+
+
+func main(){
     bts, err := ioutil.ReadAll((os.NewFile(0, "stdin")))
     if err != nil{
         log.Fatal(err)
     }
-    l, results = lex("testLex", string(bts), nil)
-
-    for !done {
-        yyParse(&yyLex{})
-    }
+    parse(string(bts))
 }

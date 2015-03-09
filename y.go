@@ -5,6 +5,7 @@ import __yyfmt__ "fmt"
 
 //line parser.y:2
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -12,7 +13,7 @@ import (
 
 type itemType int
 
-//line parser.y:18
+//line parser.y:19
 type yySymType struct {
 	yys int
 	val interface{}
@@ -53,9 +54,10 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parser.y:83
+//line parser.y:85
 
 type yyLex struct {
+	err error
 }
 
 func (jl *yyLex) Lex(lval *yySymType) int {
@@ -73,6 +75,7 @@ func (jl *yyLex) Lex(lval *yySymType) int {
 }
 
 func (jl *yyLex) Error(e string) {
+	jl.err = fmt.Errorf("%s", e)
 	log.Printf("Parsing error: %s", e)
 }
 
@@ -82,18 +85,27 @@ var results chan result
 
 var done bool
 
-func main() {
+func parse(input string) error {
 
 	// Set up the lexer, which will run concurrently
+	l, results = lex("testLex", input, nil)
+
+	for !done {
+		jl := &yyLex{}
+		yyParse(jl)
+		if jl.err != nil {
+			return jl.err
+		}
+	}
+	return nil
+}
+
+func main() {
 	bts, err := ioutil.ReadAll((os.NewFile(0, "stdin")))
 	if err != nil {
 		log.Fatal(err)
 	}
-	l, results = lex("testLex", string(bts), nil)
-
-	for !done {
-		yyParse(&yyLex{})
-	}
+	parse(string(bts))
 }
 
 //line yacctab:1
@@ -103,58 +115,58 @@ var yyExca = []int{
 	-2, 0,
 }
 
-const yyNprod = 21
+const yyNprod = 22
 const yyPrivate = 57344
 
 var yyTokenNames []string
 var yyStates []string
 
-const yyLast = 43
+const yyLast = 45
 
 var yyAct = []int{
 
-	18, 7, 19, 6, 9, 4, 5, 12, 27, 16,
-	15, 14, 22, 4, 5, 15, 14, 13, 15, 14,
-	22, 8, 25, 15, 14, 13, 29, 12, 30, 28,
-	24, 26, 23, 4, 5, 21, 3, 20, 2, 17,
-	11, 10, 1,
+	18, 7, 19, 6, 9, 28, 25, 12, 4, 5,
+	23, 26, 16, 15, 14, 22, 4, 5, 23, 27,
+	24, 15, 14, 22, 15, 14, 13, 30, 12, 31,
+	29, 8, 17, 15, 14, 13, 4, 5, 21, 3,
+	20, 2, 11, 10, 1,
 }
 var yyPact = []int{
 
-	28, -1000, -13, -15, 13, 0, -1000, -1000, -1000, 24,
-	16, 9, -1000, -1000, -1000, -1000, -1000, 22, -6, -1000,
-	-1000, -1000, -1000, -1000, 5, 8, -1000, 8, -1000, -1000,
-	-1000,
+	31, -1000, -13, -15, 23, 3, -1000, -1000, -1000, 12,
+	-8, -2, -1000, -1000, -1000, -1000, -1000, 10, -9, -1000,
+	-1000, -1000, -1000, -1000, -1000, 14, 11, -1000, 11, -1000,
+	-1000, -1000,
 }
 var yyPgo = []int{
 
-	0, 42, 37, 35, 4, 41, 40, 0, 2, 39,
+	0, 44, 40, 38, 4, 43, 42, 0, 2, 32,
 }
 var yyR1 = []int{
 
 	0, 1, 1, 1, 2, 2, 4, 4, 5, 6,
-	6, 8, 8, 7, 7, 7, 7, 3, 3, 9,
-	9,
+	6, 8, 8, 7, 7, 7, 7, 7, 3, 3,
+	9, 9,
 }
 var yyR2 = []int{
 
 	0, 0, 2, 2, 2, 3, 1, 3, 3, 1,
-	1, 1, 1, 1, 1, 1, 1, 2, 3, 1,
-	3,
+	1, 1, 1, 1, 1, 1, 1, 1, 2, 3,
+	1, 3,
 }
 var yyChk = []int{
 
 	-1000, -1, -2, -3, 5, 6, 16, 16, 8, -4,
 	-5, -6, -8, 12, 11, 10, 9, -9, -7, -8,
-	-2, -3, 12, 8, 14, 13, 9, 14, -4, -7,
-	-7,
+	-2, -3, 12, 7, 8, 14, 13, 9, 14, -4,
+	-7, -7,
 }
 var yyDef = []int{
 
 	1, -2, 0, 0, 0, 0, 2, 3, 4, 0,
-	6, 0, 9, 10, 11, 12, 17, 0, 19, 13,
-	14, 15, 16, 5, 0, 0, 18, 0, 7, 8,
-	20,
+	6, 0, 9, 10, 11, 12, 18, 0, 20, 13,
+	14, 15, 16, 17, 5, 0, 0, 19, 0, 7,
+	8, 21,
 }
 var yyTok1 = []int{
 

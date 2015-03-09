@@ -2,10 +2,13 @@ package main
 
 import "testing"
 
+
+const SimpleJSON = `{"a":5}`
+
 func Test_SimpleJSON(t *testing.T) {
 	var items []item
 	//_, itemsC := lex("testLex", `{"a":5, b : 'foo' }`)
-	_, results  := lex("testLex", `{"a":5}`, nil)
+	_, results  := lex("testLex", SimpleJSON, nil)
 	for result := range results {
 		if err := result.item.Err(); err != nil {
 			t.Errorf("error: %s", err)
