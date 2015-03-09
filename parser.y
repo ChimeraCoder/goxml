@@ -53,7 +53,7 @@ json    : /* empty */
         ;
 
 OBJECT  : itemLeftBrace itemRightBrace /*{ $$.val = map[string]interface{}{}}*/
-        | itemLeftBrace PAIRS itemRightBrace { $$.val = map[string]interface{}{strings.Trim($2.key, "\"") : $2.val}}
+        | itemLeftBrace PAIRS itemRightBrace { $$.val = map[string]interface{}{$2.key : $2.val}}
         ;
 
 PAIRS   : PAIR  {log.Printf("d %+v", $$); $$.key = $1.key; $$.val = $1.val}
@@ -67,8 +67,8 @@ KEY     : STRING
         | itemIdentifier
         ;
 
-STRING  : itemSingleQuote
-        | itemDoubleQuote
+STRING  : itemSingleQuote {$$.val = strings.Trim($1.val.(string), "'") }
+        | itemDoubleQuote {$$.val = strings.Trim($1.val.(string), "\"")}
         ;
 
 VALUE   : STRING

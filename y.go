@@ -59,7 +59,6 @@ const yyErrCode = 2
 const yyMaxDepth = 200
 
 //line parser.y:89
-
 var parsedAST interface{}
 
 type yyLex struct {
@@ -430,7 +429,7 @@ yydefault:
 	case 5:
 		//line parser.y:56
 		{
-			yyVAL.val = map[string]interface{}{strings.Trim(yyS[yypt-1].key, "\""): yyS[yypt-1].val}
+			yyVAL.val = map[string]interface{}{yyS[yypt-1].key: yyS[yypt-1].val}
 		}
 	case 6:
 		//line parser.y:59
@@ -446,6 +445,16 @@ yydefault:
 			yyVAL.key = yyS[yypt-2].val.(string)
 			yyVAL.val = yyS[yypt-0].val
 			log.Println(yyVAL.val)
+		}
+	case 11:
+		//line parser.y:70
+		{
+			yyVAL.val = strings.Trim(yyS[yypt-0].val.(string), "'")
+		}
+	case 12:
+		//line parser.y:71
+		{
+			yyVAL.val = strings.Trim(yyS[yypt-0].val.(string), "\"")
 		}
 	case 17:
 		//line parser.y:78
