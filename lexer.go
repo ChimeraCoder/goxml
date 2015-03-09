@@ -13,7 +13,6 @@ type item struct {
 	val string   // Value, such as "23.2".
 }
 
-
 const EOF = 0
 
 func (i item) String() string {
@@ -35,32 +34,32 @@ func (i item) Err() error {
 }
 
 type result struct {
-    item item
-    state stateFn
+	item  item
+	state stateFn
 }
 
 // lexer holds the state of the scanner
 type lexer struct {
-	name  string    // for error reporting
-	input string    // string being scanned
-	start int       // start position of item
-	pos   int       // current position in input
-	width int       // width of last rune read from input
-    results chan result // channel of (scanned items, next state being returned)
+	name    string      // for error reporting
+	input   string      // string being scanned
+	start   int         // start position of item
+	pos     int         // current position in input
+	width   int         // width of last rune read from input
+	results chan result // channel of (scanned items, next state being returned)
 }
 
 type stateFn func(*lexer) stateFn
 
 func lex(name string, input string, startState stateFn) (*lexer, chan result) {
 	l := &lexer{
-		name:  name,
-		input: input,
+		name:    name,
+		input:   input,
 		results: make(chan result, 2), // two items is sufficient
 	}
 
-    if startState == nil {
-        startState = lexText
-    }
+	if startState == nil {
+		startState = lexText
+	}
 	go l.run(lexText)
 	return l, l.results
 }
@@ -74,10 +73,9 @@ func (l *lexer) run(startState stateFn) {
 
 func (l *lexer) emit(t itemType, next stateFn) {
 	i := item{t, l.input[l.start:l.pos]}
-    l.results <- result{i, next}
+	l.results <- result{i, next}
 	l.start = l.pos
 }
-
 
 // lexIdentifier means we are reading an identifier
 func lexIdentifier(l *lexer) stateFn {
@@ -202,14 +200,13 @@ func lexText(l *lexer) stateFn {
 // by passing back a nil pointer that will be the next state
 // thereby terminating l.run
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
-	l.results <- result { item{
+	l.results <- result{item{
 		itemError,
 		fmt.Sprintf(format, args...),
 	}, nil}
 
 	return nil
 }
-
 
 func lexDoubleQuote(l *lexer) stateFn {
 	// TODO use a 'reject' function to simplify this
