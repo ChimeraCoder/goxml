@@ -31,7 +31,12 @@ func Test_ParseNestedJSON(t *testing.T) {
 }
 
 func Test_ParseJSFunction(t *testing.T) {
-	if _, err := parse(NestedJSON); err != nil {
+	ast, err := parse(NestedJSON)
+	if err != nil {
 		t.Error(err)
+	}
+
+	if reflect.TypeOf(ast).Kind() != reflect.Func {
+		t.Errorf("Expected Func and received Kind %s", reflect.TypeOf(ast).Kind())
 	}
 }

@@ -50,14 +50,42 @@ type itemType int
 %token  itemReturn
 %token  itemIncrement
 %token  itemOperatorPlus
-
+%token  itemVar
+%token  itemAssignment
 
 
 %%
 
-json    : /* empty */
-        | OBJECT itemEOF {parsedAST = $$.val}
-        | ARRAY itemEOF
+TOPLEVEL    : JSON itemEOF /* allow just to ensure raw JSON tests parse */
+                           /* since JSON can be empty, 
+                           /* this also allows the empty program */
+            | STATEMENTS itemEOF
+            ;
+
+STATEMENTS  : /* empty */
+            | STATEMENT itemSemicolon STATEMENTS
+            ;
+
+STATEMENT   : itemVar itemAssignment EXPRESSION
+            ; 
+
+EXPRESSION  : itemFunc itemLeftParen FUNCARGS itemRightParen itemLeftBrace
+            | JSON
+            ;
+
+
+FUNCARGS    : /* empty */
+            | ELEMENTS
+            ;
+
+
+/* 
+   Datatypes required for parsing JSON
+   Many of these will also be useful for parsing arbitrary expressions
+*/
+
+JSON    : OBJECT {parsedAST = $$.val}
+        | ARRAY 
         ;
 
 OBJECT  : itemLeftBrace itemRightBrace /*{ $$.val = map[string]interface{}{}}*/
@@ -71,8 +99,8 @@ PAIRS   : PAIR  {$$.mapval = $1.mapval}/*{$$.mergeKeys(map[string]interface{}{$1
 PAIR    : KEY itemColon VALUE {$$.mapval = map[string]interface{}{$1.val.(string) : $3.val}}
         ;
 
-KEY     : STRING 
-        | itemIdentifier
+KEY     : STRING
+       | itemIdentifier
         ;
 
 STRING  : itemSingleQuote {$$.val = strings.Trim($1.val.(string), "'") }

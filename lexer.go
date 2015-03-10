@@ -224,6 +224,9 @@ func lexText(l *lexer) stateFn {
 			return lexDoubleQuote
 		case r == '\'':
 			return lexSingleQuote
+		case r == '=':
+			l.emit(itemAssignment, nil) // TODO '==' and '===' equality check
+			return lexText
 		case r == '+' || r == '-' || '0' <= r && r <= '9':
 			l.backup()
 			return lexNumber
