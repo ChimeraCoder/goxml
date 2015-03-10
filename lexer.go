@@ -2,9 +2,17 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"unicode/utf8"
+)
+
+type Keyword string
+
+const (
+	kFunction Keyword = "function"
+	kReturn           = "return"
 )
 
 // item represents a token returned from the scanner.
@@ -73,6 +81,7 @@ func (l *lexer) run(startState stateFn) {
 
 func (l *lexer) emit(t itemType, next stateFn) {
 	i := item{t, l.input[l.start:l.pos]}
+	log.Printf("Lexed %+v", i)
 	l.results <- result{i, next}
 	l.start = l.pos
 }
@@ -80,8 +89,16 @@ func (l *lexer) emit(t itemType, next stateFn) {
 // lexIdentifier means we are reading an identifier
 func lexIdentifier(l *lexer) stateFn {
 	const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVQXYZabcdefghijklmnopqrstuvwxyz0123456789"
-	l.acceptRun(alphanumeric)
-	l.emit(itemIdentifier, lexText)
+	run := l.acceptRun(alphanumeric)
+	log.Printf("Run is %s", run)
+	switch Keyword(run) {
+	case kFunction:
+		l.emit(itemFunc, lexText)
+	case kReturn:
+		l.emit(itemReturn, lexText)
+	default:
+		l.emit(itemIdentifier, lexText)
+	}
 	return lexText
 }
 
@@ -127,11 +144,15 @@ func (l *lexer) accept(valid string) bool {
 }
 
 // acceptRun consumes a run of runes from the valid set
-func (l *lexer) acceptRun(valid string) {
-	for strings.IndexRune(valid, l.next()) >= 0 {
+func (l *lexer) acceptRun(valid string) string {
+	result := ""
+	for next := l.next(); strings.IndexRune(valid, next) >= 0; next = l.next() {
 		// accept
+		result += string(next)
+		fmt.Print(result)
 	}
 	l.backup()
+	return result
 }
 
 func lexNumber(l *lexer) stateFn {
@@ -190,6 +211,12 @@ func lexText(l *lexer) stateFn {
 		case r == ',':
 			l.emit(itemComma, lexText)
 			return lexText
+		case r == '(':
+			l.emit(itemLeftParen, lexText)
+		case r == ')':
+			l.emit(itemRightParen, lexText)
+		case r == ';':
+			l.emit(itemSemicolon, lexText)
 		default:
 			return l.errorf("unexpected token: %s", string(r))
 		}

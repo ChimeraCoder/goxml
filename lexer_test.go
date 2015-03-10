@@ -1,9 +1,21 @@
 package main
 
-import "testing"
+import (
+	"log"
+	"reflect"
+	"testing"
+)
 
 const SimpleJSON = `{"a":5}`
 const NestedJSON = `{"a":5, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}}`
+const JSFunction = `function(i) {
+    return i++;
+}
+`
+
+func IsFunc(v interface{}) bool {
+	return reflect.ValueOf(v).Kind() == reflect.Func
+}
 
 func Test_SimpleJSON(t *testing.T) {
 	var items []item
@@ -65,9 +77,35 @@ func Test_NestedJSON(t *testing.T) {
 	checkEqual(t, items, expected)
 }
 
+func Test_JSFunction(t *testing.T) {
+	var items []item
+	_, results := lex("testLex", JSFunction, nil)
+	for result := range results {
+		if err := result.item.Err(); err != nil {
+			t.Errorf("error: %s", err)
+			log.Printf("items: %v", items)
+		}
+		items = append(items, result.item)
+	}
+	expected := []item{
+		item{itemFunc, "function"},
+		item{itemLeftParen, `(`},
+		item{itemIdentifier, "i"},
+		item{itemRightParen, ")"},
+		item{itemLeftBrace, "{"},
+		item{itemReturn, "return"},
+		item{itemIdentifier, "i"},
+		item{itemIncrement, `++`},
+		item{itemSemicolon, ";"},
+		item{itemRightBrace, "}"},
+		item{itemEOF, string("")},
+	}
+	checkEqual(t, items, expected)
+}
+
 func checkEqual(t *testing.T, items, expected []item) {
 	if len(items) != len(expected) {
-		t.Errorf("Received %d tokens, expecting %d", len(items), len(expected))
+		t.Errorf("Received %d tokens, expecting %d: %+v", len(items), len(expected), items)
 		return
 	}
 	for i, item := range items {

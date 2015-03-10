@@ -36,6 +36,12 @@ const itemColon = 57355
 const itemComma = 57356
 const itemDot = 57357
 const itemEOF = 57358
+const itemFunc = 57359
+const itemLeftParen = 57360
+const itemRightParen = 57361
+const itemSemicolon = 57362
+const itemReturn = 57363
+const itemIncrement = 57364
 
 var yyToknames = []string{
 	"itemError",
@@ -51,6 +57,12 @@ var yyToknames = []string{
 	"itemComma",
 	"itemDot",
 	"itemEOF",
+	"itemFunc",
+	"itemLeftParen",
+	"itemRightParen",
+	"itemSemicolon",
+	"itemReturn",
+	"itemIncrement",
 }
 var yyStatenames = []string{}
 
@@ -58,8 +70,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parser.y:89
-
+//line parser.y:95
 var parsedAST interface{}
 
 type yyLex struct {
@@ -190,7 +201,8 @@ var yyTok1 = []int{
 var yyTok2 = []int{
 
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-	12, 13, 14, 15, 16,
+	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+	22,
 }
 var yyTok3 = []int{
 	0,
@@ -422,40 +434,40 @@ yydefault:
 	switch yynt {
 
 	case 2:
-		//line parser.y:51
+		//line parser.y:57
 		{
 			parsedAST = yyVAL.val
 		}
 	case 5:
-		//line parser.y:56
+		//line parser.y:62
 		{
 			yyVAL.val = map[string]interface{}{yyS[yypt-1].key: yyS[yypt-1].val}
 		}
 	case 6:
-		//line parser.y:59
+		//line parser.y:65
 		{
 			yyVAL.key = yyS[yypt-0].key
 			yyVAL.val = yyS[yypt-0].val
 		}
 	case 8:
-		//line parser.y:63
+		//line parser.y:69
 		{
 			yyVAL.val = fmt.Sprintf("%s : %v", yyS[yypt-2].val, yyS[yypt-0].val)
 			yyVAL.key = yyS[yypt-2].val.(string)
 			yyVAL.val = yyS[yypt-0].val
 		}
 	case 11:
-		//line parser.y:70
+		//line parser.y:76
 		{
 			yyVAL.val = strings.Trim(yyS[yypt-0].val.(string), "'")
 		}
 	case 12:
-		//line parser.y:71
+		//line parser.y:77
 		{
 			yyVAL.val = strings.Trim(yyS[yypt-0].val.(string), "\"")
 		}
 	case 17:
-		//line parser.y:78
+		//line parser.y:84
 		{
 			n, err := strconv.Atoi(yyS[yypt-0].val.(string))
 			if err != nil {
@@ -464,17 +476,17 @@ yydefault:
 			yyVAL.val = n
 		}
 	case 19:
-		//line parser.y:82
+		//line parser.y:88
 		{
 			yyVAL.val = yyS[yypt-1].val.([]interface{})
 		}
 	case 20:
-		//line parser.y:85
+		//line parser.y:91
 		{
 			yyVAL.val = []interface{}{yyS[yypt-0].val}
 		}
 	case 21:
-		//line parser.y:86
+		//line parser.y:92
 		{
 			yyVAL.val = append(yyS[yypt-0].val.([]interface{}), yyS[yypt-2].val)
 		}

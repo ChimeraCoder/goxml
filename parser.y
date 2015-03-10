@@ -29,8 +29,8 @@ type itemType int
 // as they are contained in the lexer
 // as constants of type itemType
 
-%token itemError 
-%token itemLeftBrace
+%token  itemError 
+%token  itemLeftBrace
 %token	itemLeftSquareBracket
 %token	itemNumber
 %token	itemRightBrace
@@ -42,6 +42,12 @@ type itemType int
 %token	itemComma
 %token	itemDot
 %token	itemEOF
+%token  itemFunc
+%token  itemLeftParen
+%token  itemRightParen
+%token  itemSemicolon
+%token  itemReturn
+%token  itemIncrement
 
 
 
