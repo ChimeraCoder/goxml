@@ -145,7 +145,6 @@ func mergeKeys(a, b map[string]interface{}) map[string]interface{} {
             result[k] = val
         }
     }
-    log.Printf("Merged %+v and %+v into %+v", a, b, result)
     return result
 }
 
