@@ -82,12 +82,7 @@ STRING  : itemSingleQuote {$$.val = strings.Trim($1.val.(string), "'") }
 VALUE   : STRING
         | OBJECT
         | ARRAY
-        | itemIdentifier  {switch $1.val {
-                           case "true":
-                               $$.val = true;
-                           default:
-                            $$.val = $1.val;
-                        }}
+        | itemIdentifier  {$$.val = parseIdentifier($1)}
         | itemNumber  { n, err := strconv.Atoi($1.val.(string)); if err != nil { yylex.Error(err.Error()) }; $$.val = n}
         ;
 
@@ -128,25 +123,7 @@ func (jl *yyLex) Error(e string) {
 }
 
 
-// mergeKeys will merge the mapval fields, overwriting y.mapval
-// it is safe to call even if y.mapval is nil
-func (y *yySymType) mergeKeys(other map[string]interface{}) {
-    map1 := y.mapval
-    y.mapval = mergeKeys(map1, other)
-}
 
-
-// mergeKeys will produce the union of two sets
-// The behavior for duplicate keys is undefined
-func mergeKeys(a, b map[string]interface{}) map[string]interface{} {
-    result := map[string]interface{}{}
-    for _, m := range []map[string]interface{}{a, b} {
-        for k, val := range m {
-            result[k] = val
-        }
-    }
-    return result
-}
 
 // The actual lexer
 var l *lexer

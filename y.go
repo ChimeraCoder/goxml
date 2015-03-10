@@ -73,8 +73,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parser.y:102
-
+//line parser.y:97
 var parsedAST interface{}
 
 type yyLex struct {
@@ -98,25 +97,6 @@ func (jl *yyLex) Lex(lval *yySymType) int {
 func (jl *yyLex) Error(e string) {
 	jl.err = fmt.Errorf("%s", e)
 	log.Printf("Parsing error: %s", e)
-}
-
-// mergeKeys will merge the mapval fields, overwriting y.mapval
-// it is safe to call even if y.mapval is nil
-func (y *yySymType) mergeKeys(other map[string]interface{}) {
-	map1 := y.mapval
-	y.mapval = mergeKeys(map1, other)
-}
-
-// mergeKeys will produce the union of two sets
-// The behavior for duplicate keys is undefined
-func mergeKeys(a, b map[string]interface{}) map[string]interface{} {
-	result := map[string]interface{}{}
-	for _, m := range []map[string]interface{}{a, b} {
-		for k, val := range m {
-			result[k] = val
-		}
-	}
-	return result
 }
 
 // The actual lexer
@@ -494,15 +474,10 @@ yydefault:
 	case 16:
 		//line parser.y:85
 		{
-			switch yyS[yypt-0].val {
-			case "true":
-				yyVAL.val = true
-			default:
-				yyVAL.val = yyS[yypt-0].val
-			}
+			yyVAL.val = parseIdentifier(yyS[yypt-0])
 		}
 	case 17:
-		//line parser.y:91
+		//line parser.y:86
 		{
 			n, err := strconv.Atoi(yyS[yypt-0].val.(string))
 			if err != nil {
@@ -511,17 +486,17 @@ yydefault:
 			yyVAL.val = n
 		}
 	case 19:
-		//line parser.y:95
+		//line parser.y:90
 		{
 			yyVAL.val = yyS[yypt-1].val.([]interface{})
 		}
 	case 20:
-		//line parser.y:98
+		//line parser.y:93
 		{
 			yyVAL.val = []interface{}{yyS[yypt-0].val}
 		}
 	case 21:
-		//line parser.y:99
+		//line parser.y:94
 		{
 			yyVAL.val = append([]interface{}{yyS[yypt-2].val}, yyS[yypt-0].val.([]interface{})...)
 		}
