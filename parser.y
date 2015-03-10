@@ -22,6 +22,7 @@ type itemType int
     val interface{}
 
     key string
+    mapval map[string]interface{}
 }
 
 
@@ -60,14 +61,14 @@ json    : /* empty */
         ;
 
 OBJECT  : itemLeftBrace itemRightBrace /*{ $$.val = map[string]interface{}{}}*/
-        | itemLeftBrace PAIRS itemRightBrace { $$.val = map[string]interface{}{$2.key : $2.val}}
+        | itemLeftBrace PAIRS itemRightBrace { $$.val = $2.mapval}
         ;
 
-PAIRS   : PAIR  {$$.key = $1.key; $$.val = $1.val}
-        | PAIR itemComma PAIRS
+PAIRS   : PAIR  {$$.mapval = $1.mapval}/*{$$.mergeKeys(map[string]interface{}{$1.key : $1.val}); log.Printf("is %+v", $$.mapval)}*/
+        | PAIR itemComma PAIRS {$$.mapval = mergeKeys($1.mapval, $3.mapval)}
         ;
 
-PAIR    : KEY itemColon VALUE {$$.val = fmt.Sprintf("%s : %v", $1.val, $3.val); $$.key = $1.val.(string); $$.val = $3.val; }
+PAIR    : KEY itemColon VALUE {$$.mapval = map[string]interface{}{$1.val.(string) : $3.val}}
         ;
 
 KEY     : STRING 
@@ -81,7 +82,12 @@ STRING  : itemSingleQuote {$$.val = strings.Trim($1.val.(string), "'") }
 VALUE   : STRING
         | OBJECT
         | ARRAY
-        | itemIdentifier  /* TODO specify keywords true/false/etc. */
+        | itemIdentifier  {switch $1.val {
+                           case "true":
+                               $$.val = true;
+                           default:
+                            $$.val = $1.val;
+                        }}
         | itemNumber  { n, err := strconv.Atoi($1.val.(string)); if err != nil { yylex.Error(err.Error()) }; $$.val = n}
         ;
 
@@ -90,7 +96,7 @@ ARRAY   : itemLeftSquareBracket itemRightSquareBracket
         ;
 
 ELEMENTS : VALUE {$$.val = []interface{}{$1.val}}
-         | VALUE itemComma ELEMENTS {$$.val = append($3.val.([]interface{}), $1.val) }
+         | VALUE itemComma ELEMENTS {$$.val = append([]interface{}{$1.val}, $3.val.([]interface{})...) }
          ;
 
 %%
@@ -121,6 +127,27 @@ func (jl *yyLex) Error(e string) {
     log.Printf("Parsing error: %s", e)
 }
 
+
+// mergeKeys will merge the mapval fields, overwriting y.mapval
+// it is safe to call even if y.mapval is nil
+func (y *yySymType) mergeKeys(other map[string]interface{}) {
+    map1 := y.mapval
+    y.mapval = mergeKeys(map1, other)
+}
+
+
+// mergeKeys will produce the union of two sets
+// The behavior for duplicate keys is undefined
+func mergeKeys(a, b map[string]interface{}) map[string]interface{} {
+    result := map[string]interface{}{}
+    for _, m := range []map[string]interface{}{a, b} {
+        for k, val := range m {
+            result[k] = val
+        }
+    }
+    log.Printf("Merged %+v and %+v into %+v", a, b, result)
+    return result
+}
 
 // The actual lexer
 var l *lexer

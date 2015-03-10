@@ -20,7 +20,8 @@ type yySymType struct {
 	yys int
 	val interface{}
 
-	key string
+	key    string
+	mapval map[string]interface{}
 }
 
 const itemError = 57346
@@ -72,7 +73,8 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parser.y:96
+//line parser.y:102
+
 var parsedAST interface{}
 
 type yyLex struct {
@@ -96,6 +98,26 @@ func (jl *yyLex) Lex(lval *yySymType) int {
 func (jl *yyLex) Error(e string) {
 	jl.err = fmt.Errorf("%s", e)
 	log.Printf("Parsing error: %s", e)
+}
+
+// mergeKeys will merge the mapval fields, overwriting y.mapval
+// it is safe to call even if y.mapval is nil
+func (y *yySymType) mergeKeys(other map[string]interface{}) {
+	map1 := y.mapval
+	y.mapval = mergeKeys(map1, other)
+}
+
+// mergeKeys will produce the union of two sets
+// The behavior for duplicate keys is undefined
+func mergeKeys(a, b map[string]interface{}) map[string]interface{} {
+	result := map[string]interface{}{}
+	for _, m := range []map[string]interface{}{a, b} {
+		for k, val := range m {
+			result[k] = val
+		}
+	}
+	log.Printf("Merged %+v and %+v into %+v", a, b, result)
+	return result
 }
 
 // The actual lexer
@@ -436,40 +458,52 @@ yydefault:
 	switch yynt {
 
 	case 2:
-		//line parser.y:58
+		//line parser.y:59
 		{
 			parsedAST = yyVAL.val
 		}
 	case 5:
-		//line parser.y:63
+		//line parser.y:64
 		{
-			yyVAL.val = map[string]interface{}{yyS[yypt-1].key: yyS[yypt-1].val}
+			yyVAL.val = yyS[yypt-1].mapval
 		}
 	case 6:
-		//line parser.y:66
+		//line parser.y:67
 		{
-			yyVAL.key = yyS[yypt-0].key
-			yyVAL.val = yyS[yypt-0].val
+			yyVAL.mapval = yyS[yypt-0].mapval
+		}
+	case 7:
+		//line parser.y:68
+		{
+			yyVAL.mapval = mergeKeys(yyS[yypt-2].mapval, yyS[yypt-0].mapval)
 		}
 	case 8:
-		//line parser.y:70
+		//line parser.y:71
 		{
-			yyVAL.val = fmt.Sprintf("%s : %v", yyS[yypt-2].val, yyS[yypt-0].val)
-			yyVAL.key = yyS[yypt-2].val.(string)
-			yyVAL.val = yyS[yypt-0].val
+			yyVAL.mapval = map[string]interface{}{yyS[yypt-2].val.(string): yyS[yypt-0].val}
 		}
 	case 11:
-		//line parser.y:77
+		//line parser.y:78
 		{
 			yyVAL.val = strings.Trim(yyS[yypt-0].val.(string), "'")
 		}
 	case 12:
-		//line parser.y:78
+		//line parser.y:79
 		{
 			yyVAL.val = strings.Trim(yyS[yypt-0].val.(string), "\"")
 		}
-	case 17:
+	case 16:
 		//line parser.y:85
+		{
+			switch yyS[yypt-0].val {
+			case "true":
+				yyVAL.val = true
+			default:
+				yyVAL.val = yyS[yypt-0].val
+			}
+		}
+	case 17:
+		//line parser.y:91
 		{
 			n, err := strconv.Atoi(yyS[yypt-0].val.(string))
 			if err != nil {
@@ -478,19 +512,19 @@ yydefault:
 			yyVAL.val = n
 		}
 	case 19:
-		//line parser.y:89
+		//line parser.y:95
 		{
 			yyVAL.val = yyS[yypt-1].val.([]interface{})
 		}
 	case 20:
-		//line parser.y:92
+		//line parser.y:98
 		{
 			yyVAL.val = []interface{}{yyS[yypt-0].val}
 		}
 	case 21:
-		//line parser.y:93
+		//line parser.y:99
 		{
-			yyVAL.val = append(yyS[yypt-0].val.([]interface{}), yyS[yypt-2].val)
+			yyVAL.val = append([]interface{}{yyS[yypt-2].val}, yyS[yypt-0].val.([]interface{})...)
 		}
 	}
 	goto yystack /* stack new state and value */

@@ -7,7 +7,7 @@ import (
 )
 
 const SimpleJSON = `{"a":5}`
-const NestedJSON = `{"a":5, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}}`
+const NestedJSON = `{"a":4, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}}`
 const JSFunction = `function(i) {
     return i++;
 }
