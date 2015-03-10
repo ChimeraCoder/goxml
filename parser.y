@@ -67,10 +67,14 @@ STATEMENTS  : /* empty */
             ;
 
 STATEMENT   : itemVar itemAssignment EXPRESSION
+            | EXPRESSION
             ; 
 
-EXPRESSION  : itemFunc itemLeftParen FUNCARGS itemRightParen itemLeftBrace
+EXPRESSION  : FUNCTION
             | JSON
+            ;
+
+FUNCTION    : itemFunc itemLeftParen FUNCARGS itemRightParen itemLeftBrace STATEMENTS itemRightBrace { log.Print("ahsasdf")}
             ;
 
 

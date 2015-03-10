@@ -12,6 +12,7 @@ type Keyword string
 const (
 	kFunction Keyword = "function"
 	kReturn           = "return"
+	kVar              = "var"
 )
 
 // item represents a token returned from the scanner.
@@ -93,6 +94,8 @@ func lexIdentifier(l *lexer) stateFn {
 		l.emit(itemFunc, lexText)
 	case kReturn:
 		l.emit(itemReturn, lexText)
+	case kVar:
+		l.emit(itemVar, lexText)
 	default:
 		l.emit(itemIdentifier, lexText)
 	}

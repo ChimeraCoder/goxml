@@ -8,7 +8,7 @@ import (
 
 const SimpleJSON = `{"a":5}`
 const NestedJSON = `{"a":4, b : 'bar', cat : { dog : true, elephant : ['hathi', 3]}}`
-const JSFunction = `function(i) {
+const JSFunction = `var f = function(i) {
     return i++;
 }
 `
@@ -88,6 +88,9 @@ func Test_JSFunction(t *testing.T) {
 		items = append(items, result.item)
 	}
 	expected := []item{
+		item{itemVar, "var"},
+		item{itemIdentifier, "f"},
+		item{itemAssignment, "="},
 		item{itemFunc, "function"},
 		item{itemLeftParen, `(`},
 		item{itemIdentifier, "i"},
@@ -112,6 +115,10 @@ func checkEqual(t *testing.T, items, expected []item) {
 		expectedItem := expected[i]
 		if item.typ != expectedItem.typ || item.val != expectedItem.val {
 			t.Errorf("Expected %+v and received %+v", expectedItem, item)
+			log.Print(expectedItem.typ)
+			log.Print(item.typ)
+			log.Print(reflect.TypeOf(expectedItem))
+			log.Print(reflect.TypeOf(expectedItem))
 		}
 	}
 }
