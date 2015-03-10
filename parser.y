@@ -48,6 +48,7 @@ type itemType int
 %token  itemSemicolon
 %token  itemReturn
 %token  itemIncrement
+%token  itemOperatorPlus
 
 
 

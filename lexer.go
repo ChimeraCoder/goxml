@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -81,7 +80,6 @@ func (l *lexer) run(startState stateFn) {
 
 func (l *lexer) emit(t itemType, next stateFn) {
 	i := item{t, l.input[l.start:l.pos]}
-	log.Printf("Lexed %+v", i)
 	l.results <- result{i, next}
 	l.start = l.pos
 }
@@ -90,7 +88,6 @@ func (l *lexer) emit(t itemType, next stateFn) {
 func lexIdentifier(l *lexer) stateFn {
 	const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVQXYZabcdefghijklmnopqrstuvwxyz0123456789"
 	run := l.acceptRun(alphanumeric)
-	log.Printf("Run is %s", run)
 	switch Keyword(run) {
 	case kFunction:
 		l.emit(itemFunc, lexText)
@@ -149,7 +146,6 @@ func (l *lexer) acceptRun(valid string) string {
 	for next := l.next(); strings.IndexRune(valid, next) >= 0; next = l.next() {
 		// accept
 		result += string(next)
-		fmt.Print(result)
 	}
 	l.backup()
 	return result
@@ -157,7 +153,39 @@ func (l *lexer) acceptRun(valid string) string {
 
 func lexNumber(l *lexer) stateFn {
 	// optional leading sign
-	l.accept("+-")
+	p := l.peek() // store to check for consecutive operators
+	leadingSign := l.accept("+-")
+
+	// If there is a leading sign
+	// we need to check if this is a number
+	// or an operator
+	if leadingSign {
+		next := l.peek()
+		switch {
+		case isWhitespace(string(next)):
+			_ = l.next()
+			l.emit(itemOperatorPlus, lexText)
+			return lexText
+		case next == p:
+			_ = l.next()
+			if next == '+' {
+				l.emit(itemIncrement, lexText)
+				return lexText
+			}
+			if next == '-' {
+				l.emit(itemIncrement, lexText)
+			}
+			return l.errorf("unreachable", string(next))
+		case isNumeric(next):
+			// We know that we're parsing an actual number
+			break
+		default:
+			// e.g. `var a = "foo"+"bar"`
+			_ = l.next()
+			l.emit(itemOperatorPlus, lexText)
+			return lexText
+		}
+	}
 
 	// is it hex?
 	digits := "0123456789"
@@ -306,9 +334,22 @@ func isSpace(r rune) bool {
 }
 
 func isAlphaNumeric(r rune) bool {
-	reg := regexp.MustCompile("[A-Za-z]")
+	reg := regexp.MustCompile("[A-Za-z0-9]")
 	s := string(r)
 	return reg.Match([]byte(s))
+}
+
+func isNumeric(r rune) bool {
+	reg := regexp.MustCompile("[0-9]")
+	s := string(r)
+	return reg.Match([]byte(s))
+}
+
+// isWhitespace is a convenience function
+// that returns true if all characters in s
+// are whitespace, as defined by Unicode
+func isWhitespace(s string) bool {
+	return len(strings.TrimSpace(s)) == 0
 }
 
 /*
