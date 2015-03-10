@@ -2,3 +2,4 @@
 *.swo
 *.swn
 /y
+/jsonparser
