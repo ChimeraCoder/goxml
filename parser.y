@@ -49,6 +49,7 @@ type itemType int
 %token  itemSemicolon
 %token  itemReturn
 %token  itemIncrement
+%token  itemDecrement
 %token  itemOperatorPlus
 %token  itemVar
 %token  itemAssignment
@@ -56,25 +57,30 @@ type itemType int
 
 %%
 
-TOPLEVEL    : JSON itemEOF /* allow just to ensure raw JSON tests parse */
+TOPLEVEL    : JSON itemEOF 
+                           /* allow just to ensure raw JSON tests parse */
                            /* since JSON can be empty, 
                            /* this also allows the empty program */
-            | STATEMENTS itemEOF
+            | STATEMENTS itemEOF {parsedAST = $$.val}
             ;
 
 STATEMENTS  : /* empty */
             | STATEMENT itemSemicolon STATEMENTS
+            | STATEMENT STATEMENTS
             ;
 
-STATEMENT   : itemVar itemAssignment EXPRESSION
+STATEMENT   : itemVar itemIdentifier itemAssignment EXPRESSION
             | EXPRESSION
+            | itemReturn EXPRESSION
             ; 
 
 EXPRESSION  : FUNCTION
             | JSON
+            | itemIdentifier
+            | EXPRESSION itemIncrement
             ;
 
-FUNCTION    : itemFunc itemLeftParen FUNCARGS itemRightParen itemLeftBrace STATEMENTS itemRightBrace { log.Print("ahsasdf")}
+FUNCTION    : itemFunc itemLeftParen FUNCARGS itemRightParen itemLeftBrace STATEMENTS itemRightBrace
             ;
 
 
@@ -145,7 +151,7 @@ func (jl *yyLex) Lex(lval *yySymType) int {
 
     lval.val = item.val
     typ := int(item.typ)
-    //log.Printf("Lexed\t%s\t%d", item.val, typ)
+    log.Printf("Lexed\t%s\t%d", item.val, typ)
     return typ
 }
 

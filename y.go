@@ -43,9 +43,10 @@ const itemRightParen = 57361
 const itemSemicolon = 57362
 const itemReturn = 57363
 const itemIncrement = 57364
-const itemOperatorPlus = 57365
-const itemVar = 57366
-const itemAssignment = 57367
+const itemDecrement = 57365
+const itemOperatorPlus = 57366
+const itemVar = 57367
+const itemAssignment = 57368
 
 var yyToknames = []string{
 	"itemError",
@@ -67,6 +68,7 @@ var yyToknames = []string{
 	"itemSemicolon",
 	"itemReturn",
 	"itemIncrement",
+	"itemDecrement",
 	"itemOperatorPlus",
 	"itemVar",
 	"itemAssignment",
@@ -77,7 +79,8 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parser.y:129
+//line parser.y:135
+
 var parsedAST interface{}
 
 type yyLex struct {
@@ -94,7 +97,7 @@ func (jl *yyLex) Lex(lval *yySymType) int {
 
 	lval.val = item.val
 	typ := int(item.typ)
-	//log.Printf("Lexed\t%s\t%d", item.val, typ)
+	log.Printf("Lexed\t%s\t%d", item.val, typ)
 	return typ
 }
 
@@ -148,70 +151,71 @@ var yyExca = []int{
 	-2, 0,
 }
 
-const yyNprod = 32
+const yyNprod = 36
 const yyPrivate = 57344
 
 var yyTokenNames []string
 var yyStates []string
 
-const yyLast = 73
+const yyLast = 86
 
 var yyAct = []int{
 
-	3, 5, 4, 25, 32, 10, 15, 27, 26, 47,
-	29, 28, 17, 7, 8, 20, 34, 7, 8, 33,
-	14, 7, 8, 31, 40, 12, 23, 22, 30, 12,
-	13, 37, 9, 38, 39, 29, 28, 43, 41, 50,
-	29, 28, 29, 28, 46, 20, 36, 45, 48, 49,
-	44, 7, 8, 31, 19, 24, 23, 22, 30, 16,
-	18, 23, 22, 21, 23, 22, 21, 35, 2, 42,
-	11, 6, 1,
+	3, 5, 4, 10, 46, 37, 31, 18, 21, 30,
+	33, 32, 29, 53, 24, 38, 7, 8, 40, 39,
+	16, 15, 45, 13, 42, 43, 7, 8, 14, 36,
+	56, 17, 11, 13, 44, 41, 9, 54, 14, 19,
+	2, 33, 32, 23, 22, 33, 32, 33, 32, 24,
+	52, 49, 48, 50, 47, 55, 7, 8, 51, 12,
+	7, 8, 35, 13, 28, 27, 26, 34, 14, 27,
+	26, 25, 11, 7, 8, 35, 9, 6, 27, 26,
+	34, 20, 1, 27, 26, 25,
 }
 var yyPact = []int{
 
-	8, -1000, 14, 4, -1000, -1000, -14, 51, 46, -21,
-	-1000, -1000, 1, -1000, -1000, 8, -1000, 38, 17, 20,
-	-1000, -1000, -1000, -1000, -1000, 25, 10, -1000, -1000, -1000,
-	-1000, -1000, 12, 16, -1000, -1000, -1000, 54, 16, -1000,
-	16, -1000, -10, -1000, -1000, -1000, -1000, 43, 8, 31,
-	-1000,
+	51, -1000, 5, 4, -1000, -1000, 11, 73, 55, 17,
+	-17, 21, -1000, -1000, 1, -1000, -1000, 51, -1000, -1000,
+	-1000, 27, 10, 12, -1000, -1000, -1000, -1000, -1000, 25,
+	8, -1000, -1000, -1000, -1000, -1000, -22, -1000, -17, 68,
+	-1000, -1000, 59, 68, -1000, 68, 21, -6, -1000, -1000,
+	-1000, -1000, -17, 32, 51, 22, -1000,
 }
 var yyPgo = []int{
 
-	0, 72, 67, 0, 71, 5, 70, 69, 3, 2,
-	1, 12, 60, 54, 8, 7,
+	0, 82, 39, 0, 77, 3, 59, 54, 12, 2,
+	1, 8, 44, 43, 9, 6,
 }
 var yyR1 = []int{
 
-	0, 1, 1, 3, 3, 4, 4, 5, 5, 6,
-	7, 7, 2, 2, 9, 9, 11, 11, 12, 13,
-	13, 15, 15, 14, 14, 14, 14, 14, 10, 10,
-	8, 8,
+	0, 1, 1, 3, 3, 3, 4, 4, 4, 5,
+	5, 5, 5, 6, 7, 7, 2, 2, 9, 9,
+	11, 11, 12, 13, 13, 15, 15, 14, 14, 14,
+	14, 14, 10, 10, 8, 8,
 }
 var yyR2 = []int{
 
-	0, 2, 2, 0, 3, 3, 1, 1, 1, 7,
-	0, 1, 1, 1, 2, 3, 1, 3, 3, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 2, 3,
-	1, 3,
+	0, 2, 2, 0, 3, 2, 4, 1, 2, 1,
+	1, 1, 2, 7, 0, 1, 1, 1, 2, 3,
+	1, 3, 3, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 2, 3, 1, 3,
 }
 var yyChk = []int{
 
-	-1000, -1, -2, -3, -9, -10, -4, 5, 6, 24,
-	-5, -6, 17, 16, 16, 20, 8, -11, -12, -13,
-	-15, 12, 11, 10, 9, -8, -14, -15, -9, -10,
-	12, 7, 25, 18, -3, -2, 8, 14, 13, 9,
-	14, -5, -7, -8, -11, -14, -8, 19, 5, -3,
-	8,
+	-1000, -1, -2, -3, -9, -10, -4, 5, 6, 25,
+	-5, 21, -6, 12, 17, 16, 16, 20, -3, -2,
+	8, -11, -12, -13, -15, 12, 11, 10, 9, -8,
+	-14, -15, -9, -10, 12, 7, 12, 22, -5, 18,
+	-3, 8, 14, 13, 9, 14, 26, -7, -8, -11,
+	-14, -8, -5, 19, 5, -3, 8,
 }
 var yyDef = []int{
 
-	3, -2, 8, 0, 12, 13, 0, 0, 0, 0,
-	6, 7, 0, 1, 2, 3, 14, 0, 16, 0,
-	19, 20, 21, 22, 28, 0, 30, 23, 24, 25,
-	26, 27, 0, 10, 4, 8, 15, 0, 0, 29,
-	0, 5, 0, 11, 17, 18, 31, 0, 3, 0,
-	9,
+	3, -2, 10, 0, 16, 17, 3, 0, 0, 0,
+	7, 0, 9, 11, 0, 1, 2, 3, 5, 10,
+	18, 0, 20, 0, 23, 24, 25, 26, 32, 0,
+	34, 27, 28, 29, 30, 31, 0, 12, 8, 14,
+	4, 19, 0, 0, 33, 0, 0, 0, 15, 21,
+	22, 35, 6, 0, 3, 0, 13,
 }
 var yyTok1 = []int{
 
@@ -221,7 +225,7 @@ var yyTok2 = []int{
 
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-	22, 23, 24, 25,
+	22, 23, 24, 25, 26,
 }
 var yyTok3 = []int{
 	0,
@@ -452,53 +456,53 @@ yydefault:
 	// dummy call; replaced with literal code
 	switch yynt {
 
-	case 9:
-		//line parser.y:77
-		{
-			log.Print("ahsasdf")
-		}
-	case 12:
-		//line parser.y:91
+	case 2:
+		//line parser.y:64
 		{
 			parsedAST = yyVAL.val
 		}
-	case 15:
-		//line parser.y:96
+	case 16:
+		//line parser.y:97
+		{
+			parsedAST = yyVAL.val
+		}
+	case 19:
+		//line parser.y:102
 		{
 			yyVAL.val = yyS[yypt-1].mapval
 		}
-	case 16:
-		//line parser.y:99
+	case 20:
+		//line parser.y:105
 		{
 			yyVAL.mapval = yyS[yypt-0].mapval
 		}
-	case 17:
-		//line parser.y:100
+	case 21:
+		//line parser.y:106
 		{
 			yyVAL.mapval = mergeKeys(yyS[yypt-2].mapval, yyS[yypt-0].mapval)
 		}
-	case 18:
-		//line parser.y:103
+	case 22:
+		//line parser.y:109
 		{
 			yyVAL.mapval = map[string]interface{}{yyS[yypt-2].val.(string): yyS[yypt-0].val}
 		}
-	case 21:
-		//line parser.y:110
+	case 25:
+		//line parser.y:116
 		{
 			yyVAL.val = strings.Trim(yyS[yypt-0].val.(string), "'")
-		}
-	case 22:
-		//line parser.y:111
-		{
-			yyVAL.val = strings.Trim(yyS[yypt-0].val.(string), "\"")
 		}
 	case 26:
 		//line parser.y:117
 		{
+			yyVAL.val = strings.Trim(yyS[yypt-0].val.(string), "\"")
+		}
+	case 30:
+		//line parser.y:123
+		{
 			yyVAL.val = parseIdentifier(yyS[yypt-0])
 		}
-	case 27:
-		//line parser.y:118
+	case 31:
+		//line parser.y:124
 		{
 			n, err := strconv.Atoi(yyS[yypt-0].val.(string))
 			if err != nil {
@@ -506,18 +510,18 @@ yydefault:
 			}
 			yyVAL.val = n
 		}
-	case 29:
-		//line parser.y:122
+	case 33:
+		//line parser.y:128
 		{
 			yyVAL.val = yyS[yypt-1].val.([]interface{})
 		}
-	case 30:
-		//line parser.y:125
+	case 34:
+		//line parser.y:131
 		{
 			yyVAL.val = []interface{}{yyS[yypt-0].val}
 		}
-	case 31:
-		//line parser.y:126
+	case 35:
+		//line parser.y:132
 		{
 			yyVAL.val = append([]interface{}{yyS[yypt-2].val}, yyS[yypt-0].val.([]interface{})...)
 		}
