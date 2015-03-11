@@ -23,6 +23,8 @@ type itemType int
 
     key string
     mapval map[string]interface{}
+
+    scope symbolTable
 }
 
 
@@ -71,13 +73,14 @@ STATEMENTS  : /* empty */
 
 STATEMENT   : itemVar itemIdentifier itemAssignment EXPRESSION
             | EXPRESSION
-            | itemReturn EXPRESSION
+            | itemReturn EXPRESSION {scope := NewScope(); scope.Add("i", yySymType{val:5.0}); $$.val=$2.val.(func(symbolTable) float64)(scope)}
             ; 
 
 EXPRESSION  : FUNCTION
             | JSON
-            | itemIdentifier
-            | EXPRESSION itemIncrement
+            | itemIdentifier 
+            | EXPRESSION itemIncrement {ident := $1.val; $$.val = func(st symbolTable) float64 { return postfixOperation(itemIncrement, st.Lookup(ident.(string)).val, st, yylex)}} /* $0 refers to the value immediately before this production */
+            | EXPRESSION itemDecrement
             ;
 
 FUNCTION    : itemFunc itemLeftParen FUNCARGS itemRightParen itemLeftBrace STATEMENTS itemRightBrace
@@ -110,7 +113,7 @@ PAIR    : KEY itemColon VALUE {$$.mapval = map[string]interface{}{$1.val.(string
         ;
 
 KEY     : STRING
-       | itemIdentifier
+        | itemIdentifier
         ;
 
 STRING  : itemSingleQuote {$$.val = strings.Trim($1.val.(string), "'") }
