@@ -59,7 +59,7 @@ type itemType int
 
 %%
 
-TOPLEVEL    : JSON itemEOF 
+TOPLEVEL    : EXPRESSION itemEOF  {parsedAST = $1.val.(func(symbolTable) map[string]interface{})(NewScope())}
                            /* allow just to ensure raw JSON tests parse */
                            /* since JSON can be empty, 
                            /* this also allows the empty program */
@@ -76,8 +76,9 @@ STATEMENT   : itemVar itemIdentifier itemAssignment EXPRESSION
             | itemReturn EXPRESSION {scope := NewScope(); scope.Add("i", yySymType{val:5.0}); $$.val=$2.val.(func(symbolTable) float64)(scope)}
             ; 
 
+            /* Expressions will parse to a function that operates on a symbolTable and returns a value */
 EXPRESSION  : FUNCTION
-            | JSON
+            | JSON {r1 := $1.val; $$.val = func(st symbolTable) map[string]interface{}{ return r1.(map[string]interface{}) }}
             | itemIdentifier 
             | EXPRESSION itemIncrement {ident := $1.val; $$.val = func(st symbolTable) float64 { return postfixOperation(itemIncrement, st.Lookup(ident.(string)).val, st, yylex)}} /* $0 refers to the value immediately before this production */
             | EXPRESSION itemDecrement
@@ -97,7 +98,7 @@ FUNCARGS    : /* empty */
    Many of these will also be useful for parsing arbitrary expressions
 */
 
-JSON    : OBJECT {parsedAST = $$.val}
+JSON    : OBJECT {$$.val = $1.val}
         | ARRAY 
         ;
 
