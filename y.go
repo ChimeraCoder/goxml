@@ -81,7 +81,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parser.y:139
+//line parser.y:141
 
 var parsedAST interface{}
 
@@ -461,28 +461,36 @@ yydefault:
 	case 1:
 		//line parser.y:62
 		{
-			parsedAST = yyS[yypt-1].val.(func(symbolTable) map[string]interface{})(NewScope())
+			parsedAST = yyS[yypt-1].val.(func(symbolTable) interface{})(NewScope())
 		}
 	case 2:
 		//line parser.y:66
 		{
 			parsedAST = yyVAL.val
 		}
+	case 6:
+		//line parser.y:74
+		{
+			scope := NewScope()
+			yyS[yypt-0].val = yyS[yypt-0].val.(func(symbolTable) interface{})(NewScope())
+			scope.Add(yyS[yypt-2].val.(string), yyS[yypt-0])
+			yyVAL.scope = scope
+		}
 	case 8:
-		//line parser.y:76
+		//line parser.y:78
 		{
 			scope := NewScope()
 			scope.Add("i", yySymType{val: 5.0})
 			yyVAL.val = yyS[yypt-0].val.(func(symbolTable) float64)(scope)
 		}
 	case 10:
-		//line parser.y:81
+		//line parser.y:83
 		{
 			r1 := yyS[yypt-0].val
-			yyVAL.val = func(st symbolTable) map[string]interface{} { return r1.(map[string]interface{}) }
+			yyVAL.val = func(st symbolTable) interface{} { return r1.(map[string]interface{}) }
 		}
 	case 12:
-		//line parser.y:83
+		//line parser.y:85
 		{
 			ident := yyS[yypt-1].val
 			yyVAL.val = func(st symbolTable) float64 {
@@ -490,47 +498,47 @@ yydefault:
 			}
 		}
 	case 17:
-		//line parser.y:101
+		//line parser.y:103
 		{
 			yyVAL.val = yyS[yypt-0].val
 		}
 	case 20:
-		//line parser.y:106
+		//line parser.y:108
 		{
 			yyVAL.val = yyS[yypt-1].mapval
 		}
 	case 21:
-		//line parser.y:109
+		//line parser.y:111
 		{
 			yyVAL.mapval = yyS[yypt-0].mapval
 		}
 	case 22:
-		//line parser.y:110
+		//line parser.y:112
 		{
 			yyVAL.mapval = mergeKeys(yyS[yypt-2].mapval, yyS[yypt-0].mapval)
 		}
 	case 23:
-		//line parser.y:113
+		//line parser.y:115
 		{
 			yyVAL.mapval = map[string]interface{}{yyS[yypt-2].val.(string): yyS[yypt-0].val}
 		}
 	case 26:
-		//line parser.y:120
+		//line parser.y:122
 		{
 			yyVAL.val = strings.Trim(yyS[yypt-0].val.(string), "'")
 		}
 	case 27:
-		//line parser.y:121
+		//line parser.y:123
 		{
 			yyVAL.val = strings.Trim(yyS[yypt-0].val.(string), "\"")
 		}
 	case 31:
-		//line parser.y:127
+		//line parser.y:129
 		{
 			yyVAL.val = parseIdentifier(yyS[yypt-0])
 		}
 	case 32:
-		//line parser.y:128
+		//line parser.y:130
 		{
 			n, err := strconv.Atoi(yyS[yypt-0].val.(string))
 			if err != nil {
@@ -539,17 +547,17 @@ yydefault:
 			yyVAL.val = n
 		}
 	case 34:
-		//line parser.y:132
+		//line parser.y:134
 		{
 			yyVAL.val = yyS[yypt-1].val.([]interface{})
 		}
 	case 35:
-		//line parser.y:135
+		//line parser.y:137
 		{
 			yyVAL.val = []interface{}{yyS[yypt-0].val}
 		}
 	case 36:
-		//line parser.y:136
+		//line parser.y:138
 		{
 			yyVAL.val = append([]interface{}{yyS[yypt-2].val}, yyS[yypt-0].val.([]interface{})...)
 		}
