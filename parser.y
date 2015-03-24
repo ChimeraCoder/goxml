@@ -24,7 +24,6 @@ type itemType int
     key string
     mapval map[string]interface{}
 
-    scope symbolTable
 }
 
 
@@ -59,84 +58,28 @@ type itemType int
 
 %%
 
-TOPLEVEL    : EXPRESSION itemEOF  {parsedAST = $1.val.(func(symbolTable) interface{})(NewScope())}
-                           /* allow just to ensure raw JSON tests parse */
-                           /* since JSON can be empty, 
-                           /* this also allows the empty program */
-            | STATEMENTS itemEOF {parsedAST = $$.val}
-            ;
-
-STATEMENTS  : /* empty */
-            | STATEMENT itemSemicolon STATEMENTS
-            | STATEMENT STATEMENTS
-            ;
-
-STATEMENT   : itemVar itemIdentifier itemAssignment EXPRESSION {scope := NewScope();        
-                $4.val = $4.val.(func(symbolTable)interface{})(NewScope());
-                scope.Add($2.val.(string), $4); $$.scope = scope}
-            | EXPRESSION
-            | itemReturn EXPRESSION {scope := NewScope(); scope.Add("i", yySymType{val:5.0}); $$.val=$2.val.(func(symbolTable) float64)(scope)}
-            ; 
-
-            /* Expressions will parse to a function that operates on a symbolTable and returns a value */
-EXPRESSION  : FUNCTION
-            | JSON {r1 := $1.val; $$.val = func(st symbolTable) interface{} { return r1.(map[string]interface{}) }}
-            | itemIdentifier 
-            | EXPRESSION itemIncrement {ident := $1.val; $$.val = func(st symbolTable) float64 { return postfixOperation(itemIncrement, st.Lookup(ident.(string)).val, st, yylex)}} /* $0 refers to the value immediately before this production */
-            | EXPRESSION itemDecrement
-            ;
-
-FUNCTION    : itemFunc itemLeftParen FUNCARGS itemRightParen itemLeftBrace STATEMENTS itemRightBrace
-            ;
-
-
-FUNCARGS    : /* empty */
-            | ELEMENTS
-            ;
-
-
 /* 
-   Datatypes required for parsing JSON
+   Datatypes required for parsing XML
    Many of these will also be useful for parsing arbitrary expressions
 */
 
-JSON    : OBJECT {$$.val = $1.val}
-        | ARRAY 
-        ;
+XML : TAGS
 
-OBJECT  : itemLeftBrace itemRightBrace /*{ $$.val = map[string]interface{}{}}*/
-        | itemLeftBrace PAIRS itemRightBrace { $$.val = $2.mapval}
-        ;
 
-PAIRS   : PAIR  {$$.mapval = $1.mapval}/*{$$.mergeKeys(map[string]interface{}{$1.key : $1.val}); log.Printf("is %+v", $$.mapval)}*/
-        | PAIR itemComma PAIRS {$$.mapval = mergeKeys($1.mapval, $3.mapval)}
-        ;
+TAGS : TAG
+     | TAG TAGS
+     ;
 
-PAIR    : KEY itemColon VALUE {$$.mapval = map[string]interface{}{$1.val.(string) : $3.val}}
-        ;
+TAG :  itemLeftAngleBracket itemIdentifier ATTRIBUTES itemRightAngleBracket XML itemLeftAngleBracket itemForwardSlash itemIdentifier itemRightAngleBracket
 
-KEY     : STRING
-        | itemIdentifier
-        ;
 
-STRING  : itemSingleQuote {$$.val = strings.Trim($1.val.(string), "'") }
-        | itemDoubleQuote {$$.val = strings.Trim($1.val.(string), "\"")}
-        ;
+ATTRIBUTES : /* empty */
+           | ATTRIBUTE ATTRIBUTES
+           ;
 
-VALUE   : STRING
-        | OBJECT
-        | ARRAY
-        | itemIdentifier  {$$.val = parseIdentifier($1)}
-        | itemNumber  { n, err := strconv.Atoi($1.val.(string)); if err != nil { yylex.Error(err.Error()) }; $$.val = n}
-        ;
+ATTRIBUTE  : itemIdentifier itemEqualSign itemDoubleQuote 
+           ;
 
-ARRAY   : itemLeftSquareBracket itemRightSquareBracket
-        | itemLeftSquareBracket ELEMENTS itemRightSquareBracket { $$.val = $2.val.([]interface{}) }
-        ;
-
-ELEMENTS : VALUE {$$.val = []interface{}{$1.val}}
-         | VALUE itemComma ELEMENTS {$$.val = append([]interface{}{$1.val}, $3.val.([]interface{})...) }
-         ;
 
 %%
 

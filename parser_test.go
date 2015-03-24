@@ -1,7 +1,7 @@
 package main
 
 import (
-    "log"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -29,7 +29,7 @@ func Test_ParseNestedJSON(t *testing.T) {
 	if !reflect.DeepEqual(ast, expected) {
 		t.Errorf("AST does not match: %+v, %+v", ast, expected)
 	}
-    log.Printf("Parsed %+v", ast)
+	log.Printf("Parsed %+v", ast)
 }
 
 func Test_ParseJSFunction(t *testing.T) {
