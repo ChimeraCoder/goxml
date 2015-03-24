@@ -1,0 +1,5 @@
+goxml
+==========
+
+Automatically generate golang struct definitions from example XML
+
