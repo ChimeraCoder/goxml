@@ -7,6 +7,8 @@ import (
 	"unicode/utf8"
 )
 
+//go:generate go tool yacc parser.y
+
 type Keyword string
 
 const (

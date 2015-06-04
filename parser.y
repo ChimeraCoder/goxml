@@ -54,6 +54,10 @@ type itemType int
 %token  itemOperatorPlus
 %token  itemVar
 %token  itemAssignment
+%token  itemLeftAngleBracket
+%token  itemRightAngleBracket
+%token  itemForwardSlash
+%token  itemEqualSign
 
 
 %%
@@ -63,24 +67,36 @@ type itemType int
    Many of these will also be useful for parsing arbitrary expressions
 */
 
-XML : TAGS
+XML : OPEN ATTRIBUTES CONTENT CLOSE
+    ;
 
 
-TAGS : TAG
-     | TAG TAGS
+OPEN : itemLeftAngleBracket
      ;
 
-TAG :  itemLeftAngleBracket itemIdentifier ATTRIBUTES itemRightAngleBracket XML itemLeftAngleBracket itemForwardSlash itemIdentifier itemRightAngleBracket
+CLOSE : itemRightAngleBracket
+      ;
 
 
-ATTRIBUTES : /* empty */
-           | ATTRIBUTE ATTRIBUTES
+CONTENT : CONTENT XML
+        | /* empty */
+        ;
+
+
+ATTRIBUTES : ATTRIBUTES ATTRIBUTE
+           | /* empty */
            ;
 
-ATTRIBUTE  : itemIdentifier itemEqualSign itemDoubleQuote 
-           ;
+
+ATTRIBUTE : NAME
+          | NAME itemEqualSign VALUE
 
 
+NAME : itemIdentifier
+     ;
+
+VALUE : itemIdentifier
+      ;
 %%
 
 var parsedAST interface{}

@@ -1,0 +1,125 @@
+
+state 0
+	$accept: .XML $end 
+
+	itemLeftAngleBracket  shift 3
+	.  error
+
+	XML  goto 1
+	OPEN  goto 2
+
+state 1
+	$accept:  XML.$end 
+
+	$end  accept
+	.  error
+
+
+state 2
+	XML:  OPEN.ATTRIBUTES CONTENT CLOSE 
+	ATTRIBUTES: .    (7)
+
+	.  reduce 7 (src line 87)
+
+	ATTRIBUTES  goto 4
+
+state 3
+	OPEN:  itemLeftAngleBracket.    (2)
+
+	.  reduce 2 (src line 74)
+
+
+state 4
+	XML:  OPEN ATTRIBUTES.CONTENT CLOSE 
+	ATTRIBUTES:  ATTRIBUTES.ATTRIBUTE 
+	CONTENT: .    (5)
+
+	itemIdentifier  shift 8
+	.  reduce 5 (src line 82)
+
+	CONTENT  goto 5
+	ATTRIBUTE  goto 6
+	NAME  goto 7
+
+state 5
+	XML:  OPEN ATTRIBUTES CONTENT.CLOSE 
+	CONTENT:  CONTENT.XML 
+
+	itemLeftAngleBracket  shift 3
+	itemRightAngleBracket  shift 11
+	.  error
+
+	XML  goto 10
+	OPEN  goto 2
+	CLOSE  goto 9
+
+state 6
+	ATTRIBUTES:  ATTRIBUTES ATTRIBUTE.    (6)
+
+	.  reduce 6 (src line 86)
+
+
+state 7
+	ATTRIBUTE:  NAME.    (8)
+	ATTRIBUTE:  NAME.itemEqualSign VALUE 
+
+	itemEqualSign  shift 12
+	.  reduce 8 (src line 91)
+
+
+state 8
+	NAME:  itemIdentifier.    (10)
+
+	.  reduce 10 (src line 95)
+
+
+state 9
+	XML:  OPEN ATTRIBUTES CONTENT CLOSE.    (1)
+
+	.  reduce 1 (src line 70)
+
+
+state 10
+	CONTENT:  CONTENT XML.    (4)
+
+	.  reduce 4 (src line 81)
+
+
+state 11
+	CLOSE:  itemRightAngleBracket.    (3)
+
+	.  reduce 3 (src line 77)
+
+
+state 12
+	ATTRIBUTE:  NAME itemEqualSign.VALUE 
+
+	itemIdentifier  shift 14
+	.  error
+
+	VALUE  goto 13
+
+state 13
+	ATTRIBUTE:  NAME itemEqualSign VALUE.    (9)
+
+	.  reduce 9 (src line 92)
+
+
+state 14
+	VALUE:  itemIdentifier.    (11)
+
+	.  reduce 11 (src line 98)
+
+
+30 terminals, 9 nonterminals
+12 grammar rules, 15/2000 states
+0 shift/reduce, 0 reduce/reduce conflicts reported
+58 working sets used
+memory: parser 11/30000
+5 extra closures
+6 shift entries, 1 exceptions
+9 goto entries
+1 entries saved by goto default
+Optimizer space used: output 15/30000
+15 table entries, 0 zero
+maximum spread: 30, maximum offset: 30
