@@ -213,14 +213,14 @@ func lexText(l *lexer) stateFn {
 		switch r := l.next(); {
 		case isSpace(r):
 			l.ignore()
-		case r == '{':
-			l.emit(itemLeftBrace, lexText)
+		case r == '<':
+			l.emit(itemLeftAngleBracket, lexText)
 			return lexText
-		case r == '}':
-			l.emit(itemRightBrace, lexText)
+		case r == '>':
+			l.emit(itemRightAngleBracket, lexText)
 			return lexText
-		case r == '[':
-			l.emit(itemLeftSquareBracket, lexText)
+		case r == '/':
+			l.emit(itemForwardSlash, lexText)
 			return lexText
 		case r == ']':
 			l.emit(itemRightSquareBracket, lexText)
