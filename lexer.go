@@ -153,6 +153,9 @@ func lexText(l *lexer) stateFn {
 		case r == '>':
 			l.emit(itemRightAngleBracket, lexText)
 			return lexText
+		case r == '=':
+			l.emit(itemEqualSign, lexText)
+			return lexText
 		case r == '/':
 			l.emit(itemForwardSlash, lexText)
 			return lexText
