@@ -32,28 +32,12 @@ type itemType int
 // as constants of type itemType
 
 %token  itemError 
-%token  itemLeftBrace
 %token	itemLeftSquareBracket
 %token	itemNumber
-%token	itemRightBrace
-%token	itemRightSquareBracket
 %token	itemDoubleQuote
 %token	itemSingleQuote
 %token	itemIdentifier
-%token	itemColon
-%token	itemComma
-%token	itemDot
 %token	itemEOF
-%token  itemFunc
-%token  itemLeftParen
-%token  itemRightParen
-%token  itemSemicolon
-%token  itemReturn
-%token  itemIncrement
-%token  itemDecrement
-%token  itemOperatorPlus
-%token  itemVar
-%token  itemAssignment
 %token  itemLeftAngleBracket
 %token  itemRightAngleBracket
 %token  itemForwardSlash

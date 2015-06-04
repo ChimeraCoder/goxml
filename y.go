@@ -23,57 +23,25 @@ type yySymType struct {
 }
 
 const itemError = 57346
-const itemLeftBrace = 57347
-const itemLeftSquareBracket = 57348
-const itemNumber = 57349
-const itemRightBrace = 57350
-const itemRightSquareBracket = 57351
-const itemDoubleQuote = 57352
-const itemSingleQuote = 57353
-const itemIdentifier = 57354
-const itemColon = 57355
-const itemComma = 57356
-const itemDot = 57357
-const itemEOF = 57358
-const itemFunc = 57359
-const itemLeftParen = 57360
-const itemRightParen = 57361
-const itemSemicolon = 57362
-const itemReturn = 57363
-const itemIncrement = 57364
-const itemDecrement = 57365
-const itemOperatorPlus = 57366
-const itemVar = 57367
-const itemAssignment = 57368
-const itemLeftAngleBracket = 57369
-const itemRightAngleBracket = 57370
-const itemForwardSlash = 57371
-const itemEqualSign = 57372
+const itemLeftSquareBracket = 57347
+const itemNumber = 57348
+const itemDoubleQuote = 57349
+const itemSingleQuote = 57350
+const itemIdentifier = 57351
+const itemEOF = 57352
+const itemLeftAngleBracket = 57353
+const itemRightAngleBracket = 57354
+const itemForwardSlash = 57355
+const itemEqualSign = 57356
 
 var yyToknames = []string{
 	"itemError",
-	"itemLeftBrace",
 	"itemLeftSquareBracket",
 	"itemNumber",
-	"itemRightBrace",
-	"itemRightSquareBracket",
 	"itemDoubleQuote",
 	"itemSingleQuote",
 	"itemIdentifier",
-	"itemColon",
-	"itemComma",
-	"itemDot",
 	"itemEOF",
-	"itemFunc",
-	"itemLeftParen",
-	"itemRightParen",
-	"itemSemicolon",
-	"itemReturn",
-	"itemIncrement",
-	"itemDecrement",
-	"itemOperatorPlus",
-	"itemVar",
-	"itemAssignment",
 	"itemLeftAngleBracket",
 	"itemRightAngleBracket",
 	"itemForwardSlash",
@@ -85,7 +53,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parser.y:100
+//line parser.y:84
 var parsedAST interface{}
 
 type yyLex struct {
@@ -171,8 +139,8 @@ var yyAct = []int{
 }
 var yyPact = []int{
 
-	-24, -1000, -1000, -1000, -7, -26, -1000, -30, -1000, -1000,
-	-1000, -1000, -8, -1000, -1000,
+	-8, -1000, -1000, -1000, -4, -10, -1000, -14, -1000, -1000,
+	-1000, -1000, -5, -1000, -1000,
 }
 var yyPgo = []int{
 
@@ -190,8 +158,8 @@ var yyR2 = []int{
 }
 var yyChk = []int{
 
-	-1000, -1, -2, 27, -3, -4, -6, -7, 12, -5,
-	-1, 28, 30, -8, 12,
+	-1000, -1, -2, 11, -3, -4, -6, -7, 9, -5,
+	-1, 12, 14, -8, 9,
 }
 var yyDef = []int{
 
@@ -205,8 +173,7 @@ var yyTok1 = []int{
 var yyTok2 = []int{
 
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-	22, 23, 24, 25, 26, 27, 28, 29, 30,
+	12, 13, 14,
 }
 var yyTok3 = []int{
 	0,

@@ -11,12 +11,6 @@ import (
 
 type Keyword string
 
-const (
-	kFunction Keyword = "function"
-	kReturn           = "return"
-	kVar              = "var"
-)
-
 // item represents a token returned from the scanner.
 type item struct {
 	typ itemType // Type, such as itemNumber.
@@ -90,17 +84,8 @@ func (l *lexer) emit(t itemType, next stateFn) {
 // lexIdentifier means we are reading an identifier
 func lexIdentifier(l *lexer) stateFn {
 	const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVQXYZabcdefghijklmnopqrstuvwxyz0123456789"
-	run := l.acceptRun(alphanumeric)
-	switch Keyword(run) {
-	case kFunction:
-		l.emit(itemFunc, lexText)
-	case kReturn:
-		l.emit(itemReturn, lexText)
-	case kVar:
-		l.emit(itemVar, lexText)
-	default:
-		l.emit(itemIdentifier, lexText)
-	}
+	_ = l.acceptRun(alphanumeric)
+	l.emit(itemIdentifier, lexText)
 	return lexText
 }
 
@@ -156,57 +141,6 @@ func (l *lexer) acceptRun(valid string) string {
 	return result
 }
 
-func lexNumber(l *lexer) stateFn {
-	// optional leading sign
-	p := l.peek() // store to check for consecutive operators
-	leadingSign := l.accept("+-")
-
-	// If there is a leading sign
-	// we need to check if this is a number
-	// or an operator
-	if leadingSign {
-		next := l.peek()
-		switch {
-		case isWhitespace(string(next)):
-			_ = l.next()
-			l.emit(itemOperatorPlus, lexText)
-			return lexText
-		case next == p:
-			_ = l.next()
-			if next == '+' {
-				l.emit(itemIncrement, lexText)
-				return lexText
-			}
-			if next == '-' {
-				l.emit(itemIncrement, lexText)
-			}
-			return l.errorf("unreachable", string(next))
-		case isNumeric(next):
-			// We know that we're parsing an actual number
-			break
-		default:
-			// e.g. `var a = "foo"+"bar"`
-			_ = l.next()
-			l.emit(itemOperatorPlus, lexText)
-			return lexText
-		}
-	}
-
-	// is it hex?
-	digits := "0123456789"
-	if l.accept("0") && l.accept("xX") {
-		digits = "0123456789abcdefABCDEF"
-	}
-	l.acceptRun(digits)
-	if l.accept(".") {
-		l.acceptRun(digits)
-	}
-
-	l.emit(itemNumber, lexText)
-	// TODO scientific notation
-	return lexText
-}
-
 func lexText(l *lexer) stateFn {
 	// accept leading whitespace
 	for {
@@ -222,37 +156,16 @@ func lexText(l *lexer) stateFn {
 		case r == '/':
 			l.emit(itemForwardSlash, lexText)
 			return lexText
-		case r == ']':
-			l.emit(itemRightSquareBracket, lexText)
-			return lexText
 		case r == '"':
 			return lexDoubleQuote
 		case r == '\'':
 			return lexSingleQuote
-		case r == '=':
-			l.emit(itemAssignment, lexText) // TODO '==' and '===' equality check
-			return lexText
-		case r == '+' || r == '-' || '0' <= r && r <= '9':
-			l.backup()
-			return lexNumber
 		case r == EOF:
 			l.emit(itemEOF, nil)
 			return nil
 		case isAlphaNumeric(r):
 			l.backup()
 			return lexIdentifier
-		case r == ':':
-			l.emit(itemColon, lexText)
-			return lexText
-		case r == ',':
-			l.emit(itemComma, lexText)
-			return lexText
-		case r == '(':
-			l.emit(itemLeftParen, lexText)
-		case r == ')':
-			l.emit(itemRightParen, lexText)
-		case r == ';':
-			l.emit(itemSemicolon, lexText)
 		default:
 			return l.errorf("unexpected token: %s", string(r))
 		}
